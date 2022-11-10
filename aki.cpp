@@ -12,7 +12,7 @@ enum error_code {
 
 
 #define MAXLENTITLE 			   100
-#define HEADOBJECT 		 "poltorashka"
+#define HEADOBJECT 		 		 "pet"
 #define DUMPFILE   		    "tree.txt"
 #define INFOFILE 			"info.txt"
 #define SIZECOEFFICIENT 			 2
@@ -42,6 +42,7 @@ typedef struct {
 } Tree;
 
 
+void addAnswer (Node * head);
 int AddNode (Node * head);
 int AddObject (Tree * tree, FILE * dump);
 char answer (char * currentNodeData);
@@ -63,6 +64,10 @@ int main (void) {
 
 	AddObject (&tree, dump);
 	AddObject (&tree, dump);
+	AddObject (&tree, dump);
+	AddObject (&tree, dump);
+	AddObject (&tree, dump);
+
 
 	//fullExplore (tree.head);
 
@@ -82,41 +87,70 @@ int main (void) {
 }
 
 
-int AddNode (Node * head, Node * memObject) {
+void addAnswer (Node * head) {
+
+	char trueAnswer [MAXLENTITLE];
+	char difference [MAXLENTITLE];
+	char answer = '\0';
+
+	answer = getchar ();
+	while (getchar () != '\n')
+		continue;
+
+	if (answer == 'y') {
+
+		printf ("Yes, I won!\n\n");
+		return;
+	}
+
+	if (answer == 'n') {
+
+		printf ("Who is it? Input: ");
+		scanf ("%s", trueAnswer);
+		printf ("\nHow does %s differ from %s? Input: ", trueAnswer, head->data);
+		scanf ("%s", difference);
+
+		head->left =  (Node * ) malloc (sizeof (Node));
+		(head->left)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		head->right = (Node * ) malloc (sizeof (Node));
+		(head->right)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
+
+		strcpy ((head->right)->data, head->data);
+		strcpy (head->data         , difference);
+		strcpy ((head->left)->data , trueAnswer);
+		(head->left)->left   = NULL;
+		(head->left)->right  = NULL;
+		(head->right)->left  = NULL;
+		(head->right)->right = NULL;
+	}
+
+}
+
+
+int AddNode (Node * head) {
 
 	if (answer (head->data) == 'y') {
 
-		if (head->left == NULL) {
+		if (head->left == NULL && head->right == NULL) {
 
-			char answer[MAXLENTITLE];
-			scanf ("%s", answer);
-
-			strcpy (memObject->data, answer);
-			memObject->left = NULL;
-			memObject->right = NULL;
-			head->left = memObject;
+			addAnswer (head);
 			return 0;
 		}
 
-		else
-			AddNode (head->left, memObject);
-
+		else 
+			AddNode (head->left);
 	}
 
 	if (answer (head->data) == 'n') {
 
-		if (head->right == NULL) {
+		if (head->right == NULL && head->left == NULL) {
 
-			char answer[MAXLENTITLE];
-			gets (answer);
-			strcpy ((head->right)->data, answer);
-			(head->right)->right = NULL;
-			(head->right)->left = NULL;
+			addAnswer (head);
 			return 0;
 		}
 
 		else
-			AddNode (head->right, memObject);
+			AddNode (head->right);
 	}
 
 	return 0;
@@ -128,24 +162,40 @@ int AddObject (Tree * tree, FILE * dump) {
 	dump = fopen (DUMPFILE, "w");
 	CHECK_ERROR(!dump, "Problem with opening file tree.txt .\n");
 
-	Node * memObject = (Node * ) malloc (sizeof (Node));
-	memObject->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
 
 	if (tree->size == 0) {
 
+		Node * memObject = (Node * ) malloc (sizeof (Node));
+		memObject->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		Node * memObject1 = (Node * ) malloc (sizeof (Node));
+		memObject1->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		Node * memObject2 = (Node * ) malloc (sizeof (Node));
+		memObject2->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
+
 		strcpy (memObject->data, HEADOBJECT);
-		memObject->left  = NULL;
+		memObject->left = NULL;
 		memObject->right = NULL;
-		tree->head =  memObject;
-		tree->size++;
+
+		strcpy (memObject1->data, "poltorashka");
+		memObject1->left = NULL;
+		memObject1->right = NULL;
+		
+		strcpy (memObject2->data, "man");
+		memObject2->left = NULL;
+		memObject2->right = NULL;
+
+		tree->head = memObject;
+		(tree->head)->left = memObject1;
+		(tree->head)->right = memObject2;
+
+		tree->size += 3;
 
 		return ERROR_OFF;
 	}
 
 	else {
 
-		char object[MAXLENTITLE];
-		AddNode (tree->head, memObject);
+		AddNode (tree->head);
 		tree->size++;
 	}
 
@@ -157,7 +207,6 @@ char answer (char * currentNodeData) {
 
 	char answer = '\0';
 	printf ("%s (y/n):\n", currentNodeData);
-
 	answer = getchar ();
 	while (getchar () != '\n')
 		continue;
