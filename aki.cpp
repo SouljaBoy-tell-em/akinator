@@ -45,7 +45,7 @@ typedef struct {
 void addAnswer (Node * head);
 int AddNode (Node * head);
 int AddObject (Tree * tree, FILE * dump);
-char answer (char * currentNodeData);
+char Answer (char * currentNodeData);
 unsigned long FileSize (FILE * infoTree);
 void fullExplore (Node * x);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
@@ -61,13 +61,8 @@ int main (void) {
 	
 	FILE * dump = NULL;
 
-
-	AddObject (&tree, dump);
-	AddObject (&tree, dump);
-	AddObject (&tree, dump);
-	AddObject (&tree, dump);
-	AddObject (&tree, dump);
-
+	while (true)
+		AddObject (&tree, dump);
 
 	//fullExplore (tree.head);
 
@@ -91,8 +86,10 @@ void addAnswer (Node * head) {
 
 	char trueAnswer [MAXLENTITLE];
 	char difference [MAXLENTITLE];
-	char answer = '\0';
 
+	printf ("Is it %s ? (y/n)\n", head->data);
+
+	char answer = '\0';
 	answer = getchar ();
 	while (getchar () != '\n')
 		continue;
@@ -103,7 +100,7 @@ void addAnswer (Node * head) {
 		return;
 	}
 
-	if (answer == 'n') {
+	else if (answer == 'n') {
 
 		printf ("Who is it? Input: ");
 		scanf ("%s", trueAnswer);
@@ -123,37 +120,31 @@ void addAnswer (Node * head) {
 		(head->right)->left  = NULL;
 		(head->right)->right = NULL;
 	}
-
 }
 
 
 int AddNode (Node * head) {
 
-	if (answer (head->data) == 'y') {
+	if (head->left == NULL && head->right == NULL) {
 
-		if (head->left == NULL && head->right == NULL) {
-
-			addAnswer (head);
-			return 0;
-		}
-
-		else 
-			AddNode (head->left);
+		addAnswer (head);
+		return ERROR_OFF;
 	}
 
-	if (answer (head->data) == 'n') {
+	char answer = Answer (head->data);
+	if (answer == 'y') {
 
-		if (head->right == NULL && head->left == NULL) {
-
-			addAnswer (head);
-			return 0;
-		}
-
-		else
-			AddNode (head->right);
+		AddNode (head->left);
+		return ERROR_OFF;
 	}
 
-	return 0;
+	else if (answer == 'n') {
+
+		AddNode (head->right);
+		return ERROR_OFF;
+	}
+
+	return ERROR_OFF;
 }
 
 
@@ -180,7 +171,7 @@ int AddObject (Tree * tree, FILE * dump) {
 		memObject1->left = NULL;
 		memObject1->right = NULL;
 		
-		strcpy (memObject2->data, "man");
+		strcpy (memObject2->data, "matan");
 		memObject2->left = NULL;
 		memObject2->right = NULL;
 
@@ -203,7 +194,7 @@ int AddObject (Tree * tree, FILE * dump) {
 }
 
 
-char answer (char * currentNodeData) {
+char Answer (char * currentNodeData) {
 
 	char answer = '\0';
 	printf ("%s (y/n):\n", currentNodeData);
