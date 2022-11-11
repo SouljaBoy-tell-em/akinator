@@ -13,7 +13,7 @@ enum error_code {
 
 #define MAXLENANSWER				10
 #define MAXLENTITLE 			   100
-#define HEADOBJECT 		 		 "pet"
+#define HEADOBJECT 		 "poltorashka"
 #define DUMPFILE   		    "tree.txt"
 #define INFOFILE 			"info.txt"
 #define SIZECOEFFICIENT 			 2
@@ -38,7 +38,6 @@ typedef struct {
 
 	Node *  head;
 	int     size;
-	int capacity;
 
 } Tree;
 
@@ -46,7 +45,6 @@ typedef struct {
 void addAnswer (Node * head);
 int AddNode (Node * head);
 int AddObject (Tree * tree, FILE * dump);
-char Answer (char * currentNodeData);
 unsigned long FileSize (FILE * infoTree);
 void fullExplore (Node * x);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
@@ -65,7 +63,7 @@ int main (void) {
 	while (true)
 		AddObject (&tree, dump);
 
-	return 0;
+	return ERROR_OFF;
 }
 
 
@@ -76,13 +74,13 @@ void addAnswer (Node * head) {
 	char answer [MAXLENANSWER] = " ";
 	scanf ("%s", answer);
 
-	if (strcmp (answer, "y") == 0) {
+	if (!strcmp (answer, "y")) {
 
 		printf ("Yes, I won!\n\n");
 		return;
 	}
 
-	if (strcmp (answer, "n") == 0) {
+	else if (!strcmp (answer, "n")) {
 
 		char trueAnswer [MAXLENTITLE];
 		char difference [MAXLENTITLE];
@@ -97,9 +95,9 @@ void addAnswer (Node * head) {
 		head->right = (Node * ) malloc (sizeof (Node));
 		(head->right)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
 
-		strcpy ((head->left)->data, head->data);
+		strcpy ((head->right)->data, head->data);
 		strcpy (head->data         , difference);
-		strcpy ((head->right)->data , trueAnswer);
+		strcpy ((head->left)->data , trueAnswer);
 		(head->left)->left   = NULL;
 		(head->left)->right  = NULL;
 		(head->right)->left  = NULL;
@@ -107,38 +105,35 @@ void addAnswer (Node * head) {
 
 		return;
 	}
+
+	else
+		printf ("Input fake answer! Please input (y/n).\n");
 }
 
 
-int AddNode (Node * head) {
+int AddNode (Node * currentNode) {
 
-	char answer [MAXLENANSWER]= " ";
+	if (currentNode->left == NULL && currentNode->right == NULL) {
 
-	if (head->left == NULL && head->right == NULL) {
-
-		addAnswer (head);
-		return 0;
+		addAnswer (currentNode);
+		return ERROR_OFF;
 	}
 
-	printf ("%s(y/n):\n", head->data);
+	printf ("%s(y/n):\n", currentNode->data);
+	char answer [MAXLENANSWER]= " ";
 	scanf ("%s", answer);
 		
-	if (strcmp (answer, "y")) {
+	if (!strcmp (answer, "y")) 
+		AddNode (currentNode->left);
 
-		AddNode (head->left);
-		return 0;
-	}
-
-	if (strcmp (answer, "n")) {
-
-		AddNode (head->right);
-		return 0;
-	}
+	else if (!strcmp (answer, "n"))
+		AddNode (currentNode->right);
 
 	else {
 
-		printf ("Input fake answer! Symbol: %s\n", answer);
-		return 0;
+		printf ("ANS: %s\n\n\n", answer);
+		printf ("Input fake answer! Please input (y/n).\n");
+		return ERROR_ON;
 	}
 
 	return ERROR_OFF;
@@ -154,25 +149,6 @@ int AddObject (Tree * tree, FILE * dump) {
 }
 
 
-char Answer (char * currentNodeData) {
-
-	char answer = '\0';
-	printf ("%s(y/n):\n", currentNodeData);
-	answer = getchar ();
-	while (getchar () != '\n')
-		continue;
-
-	return answer;
-}
-
-
-void dump (FILE * dumpFile) {
-
-
-
-}
-
-
 unsigned long FileSize (FILE * infoTree) {
 
     struct stat buf = {};
@@ -183,16 +159,15 @@ unsigned long FileSize (FILE * infoTree) {
 }
 
 
-void fullExplore (Node * x) {
+void fullExplore (Node * currentNode) {
 
-	if (x != NULL) {
+	if (currentNode != NULL) {
 
 		printf ("Title: ");
-		puts (x->data);
-		putchar ('\n');
+		printf ("%s\n", currentNode->data);
 
-		fullExplore (x->left);
-		fullExplore (x->right);
+		fullExplore (currentNode->left );
+		fullExplore (currentNode->right);
 	}
 }
 
@@ -201,7 +176,7 @@ int getMainInfoFile (Tree * tree, FILE * infoTree) {
 
 	infoTree = fopen (INFOFILE, "r");
 	CHECK_ERROR(!infoTree, "Problem with opening file info.txt .\n");
-	fscanf (infoTree, "%d %d", &(tree->size), &(tree->capacity));
+	fscanf (infoTree, "%d", &(tree->size));
 
 	return ERROR_OFF;
 }
@@ -222,3 +197,4 @@ int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	return ERROR_OFF;
 }
+
