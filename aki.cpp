@@ -44,9 +44,10 @@ typedef struct {
 
 void addAnswer (Node * head);
 int AddNode (Node * head);
-int AddObject (Tree * tree, FILE * dump);
+int AddObject (Tree * tree);
+int dump (Node * currentNode, FILE * dumpFile);
 unsigned long FileSize (FILE * infoTree);
-void fullExplore (Node * x);
+void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
 int InitializeTree (Tree * tree, FILE * infoTree);
 
@@ -58,18 +59,21 @@ int main (void) {
 	FILE * infoTree = NULL;
 	CHECK_ERROR(InitializeTree (&tree, infoTree), "Problem with initializing tree.\n");
 	
-	FILE * dump = NULL;
-
 	while (true)
-		AddObject (&tree, dump);
+		if (AddObject (&tree) == 228)
+			break;
+
+
+	FILE * dumpFile = NULL;
+	CHECK_ERROR(dump (tree.head, dumpFile), "Problem with record in the tree.\n");
 
 	return ERROR_OFF;
 }
 
 
-void addAnswer (Node * head) {
+void addAnswer (Node * lastNode) {
 
-	printf ("Is it %s?(y/n)\n", head->data);
+	printf ("Is it %s?(y/n)\n", lastNode->data);
 
 	char answer [MAXLENANSWER] = " ";
 	scanf ("%s", answer);
@@ -87,21 +91,21 @@ void addAnswer (Node * head) {
 
 		printf ("Who is it? Input: ");
 		scanf ("%s", trueAnswer);
-		printf ("\nHow does %s differ from %s? Input: ", trueAnswer, head->data);
+		printf ("\nHow does %s differ from %s? Input: ", trueAnswer, lastNode->data);
 		scanf ("%s", difference);
 
-		head->left =  (Node * ) malloc (sizeof (Node));
-		(head->left)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
-		head->right = (Node * ) malloc (sizeof (Node));
-		(head->right)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		lastNode->left =  (Node * ) malloc (sizeof (Node));
+		(lastNode->left)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		lastNode->right = (Node * ) malloc (sizeof (Node));
+		(lastNode->right)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
 
-		strcpy ((head->right)->data, head->data);
-		strcpy (head->data         , difference);
-		strcpy ((head->left)->data , trueAnswer);
-		(head->left)->left   = NULL;
-		(head->left)->right  = NULL;
-		(head->right)->left  = NULL;
-		(head->right)->right = NULL;
+		strcpy ((lastNode->right)->data, lastNode->data);
+		strcpy (lastNode->data         , difference);
+		strcpy ((lastNode->left)->data , trueAnswer);
+		(lastNode->left)->left   = NULL;
+		(lastNode->left)->right  = NULL;
+		(lastNode->right)->left  = NULL;
+		(lastNode->right)->right = NULL;
 
 		return;
 	}
@@ -129,6 +133,9 @@ int AddNode (Node * currentNode) {
 	else if (!strcmp (answer, "n"))
 		AddNode (currentNode->right);
 
+	else if (!strcmp (answer, "#"))
+		return 228;
+
 	else {
 
 		printf ("ANS: %s\n\n\n", answer);
@@ -140,14 +147,32 @@ int AddNode (Node * currentNode) {
 }
 
 
-int AddObject (Tree * tree, FILE * dump) {
+int AddObject (Tree * tree) {
 
-	AddNode (tree->head);
-	tree->size++;
+	return AddNode (tree->head);
+
+	//tree->size++;
+}
+
+
+int dump (Node * currentNode, FILE * dumpFile) {
+
+	dumpFile = fopen (DUMPFILE, "w");
+	CHECK_ERROR(!dumpFile, "Problem with opening dump.txt");
+	
+	fullPrint (currentNode, dumpFile, 4);
+	//fullExplore (currentNode, dumpFile, 0);
 
 	return ERROR_OFF;
 }
 
+/*
+void getTreeFromFile (Node * currentNode, FILE * dumpFile) {
+
+
+
+}
+*/
 
 unsigned long FileSize (FILE * infoTree) {
 
@@ -159,17 +184,30 @@ unsigned long FileSize (FILE * infoTree) {
 }
 
 
-void fullExplore (Node * currentNode) {
+void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces) {
 
-	if (currentNode != NULL) {
+		fprintf (dumpFile, "\n%*s", amountSpaces, "{");
+		fprintf (dumpFile, " %s", currentNode->data);
 
-		printf ("Title: ");
-		printf ("%s\n", currentNode->data);
+		if (currentNode->left)
+			fullPrint (currentNode->left,  dumpFile, amountSpaces + 4);
 
-		fullExplore (currentNode->left );
-		fullExplore (currentNode->right);
-	}
+		if (currentNode->right)
+			fullPrint (currentNode->right, dumpFile, amountSpaces + 4);
+
+		if (!currentNode->left && !currentNode->right)
+			amountSpaces = 4;
+
+		fprintf (dumpFile , "%*s\n", amountSpaces, "}");
 }
+
+
+/*
+void fullGetTree (Node * currentNode, FILE * dumpFile, int amountSpaces) {
+
+
+}
+*/
 
 
 int getMainInfoFile (Tree * tree, FILE * infoTree) {
