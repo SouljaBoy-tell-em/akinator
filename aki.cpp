@@ -45,6 +45,7 @@ typedef struct {
 void addAnswer (Node * head);
 int AddNode (Node * head);
 int AddObject (Tree * tree);
+void consistentAllocatingMemory (Node ** currentNode);
 int dump (Node * currentNode, FILE * dumpFile);
 unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
@@ -57,15 +58,17 @@ int main (void) {
 	Tree tree = {};
 
 	FILE * infoTree = NULL;
+	FILE * dumpFile = NULL;
 	CHECK_ERROR(InitializeTree (&tree, infoTree), "Problem with initializing tree.\n");
-	
+
+
 	while (true)
 		if (AddObject (&tree) == 228)
 			break;
 
 
-	FILE * dumpFile = NULL;
 	CHECK_ERROR(dump (tree.head, dumpFile), "Problem with record in the tree.\n");
+
 
 	return ERROR_OFF;
 }
@@ -158,21 +161,14 @@ int AddObject (Tree * tree) {
 int dump (Node * currentNode, FILE * dumpFile) {
 
 	dumpFile = fopen (DUMPFILE, "w");
-	CHECK_ERROR(!dumpFile, "Problem with opening dump.txt");
+	CHECK_ERROR(!dumpFile, "Problem with opening tree.txt");
 	
 	fullPrint (currentNode, dumpFile, 4);
-	//fullExplore (currentNode, dumpFile, 0);
+	fclose (dumpFile);
 
 	return ERROR_OFF;
 }
 
-/*
-void getTreeFromFile (Node * currentNode, FILE * dumpFile) {
-
-
-
-}
-*/
 
 unsigned long FileSize (FILE * infoTree) {
 
@@ -196,18 +192,10 @@ void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces) {
 			fullPrint (currentNode->right, dumpFile, amountSpaces + 4);
 
 		if (!currentNode->left && !currentNode->right)
-			amountSpaces = 4;
+			amountSpaces = 2;
 
 		fprintf (dumpFile , "%*s\n", amountSpaces, "}");
 }
-
-
-/*
-void fullGetTree (Node * currentNode, FILE * dumpFile, int amountSpaces) {
-
-
-}
-*/
 
 
 int getMainInfoFile (Tree * tree, FILE * infoTree) {
@@ -223,15 +211,18 @@ int getMainInfoFile (Tree * tree, FILE * infoTree) {
 int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	CHECK_ERROR(getMainInfoFile (tree, infoTree), "Problem with getting data from file info.txt .\n");
+	
+	if (tree->size == 0) {
 
-	Node * memObject = (Node * ) malloc (sizeof (Node));
-	memObject->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		Node * memObject = (Node * ) malloc (sizeof (Node));
+		memObject->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
 
-	strcpy (memObject->data, HEADOBJECT);
-	memObject->left = NULL;
-	memObject->right = NULL;
-	tree->head = memObject;
-	tree->size++;
+		strcpy (memObject->data, HEADOBJECT);
+		memObject->left = NULL;
+		memObject->right = NULL;
+		tree->head = memObject;
+		tree->size++;
+	}
 
 	return ERROR_OFF;
 }
