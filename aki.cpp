@@ -11,6 +11,7 @@ enum error_code {
 };
 
 
+#define MAXLENANSWER				10
 #define MAXLENTITLE 			   100
 #define HEADOBJECT 		 		 "pet"
 #define DUMPFILE   		    "tree.txt"
@@ -64,43 +65,27 @@ int main (void) {
 	while (true)
 		AddObject (&tree, dump);
 
-	//fullExplore (tree.head);
-
-	/*
-
-	Node * LEFT = tree.head;
-
-	while (LEFT != NULL) {
-
-		printf ("%s\n", LEFT->data);
-		LEFT = LEFT->left;
-	}
-
-	*/
-
 	return 0;
 }
 
 
 void addAnswer (Node * head) {
 
-	char trueAnswer [MAXLENTITLE];
-	char difference [MAXLENTITLE];
+	printf ("Is it %s?(y/n)\n", head->data);
 
-	printf ("Is it %s ? (y/n)\n", head->data);
+	char answer [MAXLENANSWER] = " ";
+	scanf ("%s", answer);
 
-	char answer = '\0';
-	answer = getchar ();
-	while (getchar () != '\n')
-		continue;
-
-	if (answer == 'y') {
+	if (strcmp (answer, "y") == 0) {
 
 		printf ("Yes, I won!\n\n");
 		return;
 	}
 
-	else if (answer == 'n') {
+	if (strcmp (answer, "n") == 0) {
+
+		char trueAnswer [MAXLENTITLE];
+		char difference [MAXLENTITLE];
 
 		printf ("Who is it? Input: ");
 		scanf ("%s", trueAnswer);
@@ -112,36 +97,48 @@ void addAnswer (Node * head) {
 		head->right = (Node * ) malloc (sizeof (Node));
 		(head->right)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
 
-		strcpy ((head->right)->data, head->data);
+		strcpy ((head->left)->data, head->data);
 		strcpy (head->data         , difference);
-		strcpy ((head->left)->data , trueAnswer);
+		strcpy ((head->right)->data , trueAnswer);
 		(head->left)->left   = NULL;
 		(head->left)->right  = NULL;
 		(head->right)->left  = NULL;
 		(head->right)->right = NULL;
+
+		return;
 	}
 }
 
 
 int AddNode (Node * head) {
 
+	char answer [MAXLENANSWER]= " ";
+
 	if (head->left == NULL && head->right == NULL) {
 
 		addAnswer (head);
-		return ERROR_OFF;
+		return 0;
 	}
 
-	char answer = Answer (head->data);
-	if (answer == 'y') {
+	printf ("%s(y/n):\n", head->data);
+	scanf ("%s", answer);
+		
+	if (strcmp (answer, "y")) {
 
 		AddNode (head->left);
-		return ERROR_OFF;
+		return 0;
 	}
 
-	else if (answer == 'n') {
+	if (strcmp (answer, "n")) {
 
 		AddNode (head->right);
-		return ERROR_OFF;
+		return 0;
+	}
+
+	else {
+
+		printf ("Input fake answer! Symbol: %s\n", answer);
+		return 0;
 	}
 
 	return ERROR_OFF;
@@ -150,45 +147,8 @@ int AddNode (Node * head) {
 
 int AddObject (Tree * tree, FILE * dump) {
 
-	dump = fopen (DUMPFILE, "w");
-	CHECK_ERROR(!dump, "Problem with opening file tree.txt .\n");
-
-
-	if (tree->size == 0) {
-
-		Node * memObject = (Node * ) malloc (sizeof (Node));
-		memObject->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
-		Node * memObject1 = (Node * ) malloc (sizeof (Node));
-		memObject1->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
-		Node * memObject2 = (Node * ) malloc (sizeof (Node));
-		memObject2->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
-
-		strcpy (memObject->data, HEADOBJECT);
-		memObject->left = NULL;
-		memObject->right = NULL;
-
-		strcpy (memObject1->data, "poltorashka");
-		memObject1->left = NULL;
-		memObject1->right = NULL;
-		
-		strcpy (memObject2->data, "matan");
-		memObject2->left = NULL;
-		memObject2->right = NULL;
-
-		tree->head = memObject;
-		(tree->head)->left = memObject1;
-		(tree->head)->right = memObject2;
-
-		tree->size += 3;
-
-		return ERROR_OFF;
-	}
-
-	else {
-
-		AddNode (tree->head);
-		tree->size++;
-	}
+	AddNode (tree->head);
+	tree->size++;
 
 	return ERROR_OFF;
 }
@@ -197,7 +157,7 @@ int AddObject (Tree * tree, FILE * dump) {
 char Answer (char * currentNodeData) {
 
 	char answer = '\0';
-	printf ("%s (y/n):\n", currentNodeData);
+	printf ("%s(y/n):\n", currentNodeData);
 	answer = getchar ();
 	while (getchar () != '\n')
 		continue;
@@ -251,11 +211,14 @@ int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	CHECK_ERROR(getMainInfoFile (tree, infoTree), "Problem with getting data from file info.txt .\n");
 
-	if (tree->size == 0) {
+	Node * memObject = (Node * ) malloc (sizeof (Node));
+	memObject->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
 
-		tree->capacity = STARTSIZETREE;
-		tree->head = NULL;
-	}
+	strcpy (memObject->data, HEADOBJECT);
+	memObject->left = NULL;
+	memObject->right = NULL;
+	tree->head = memObject;
+	tree->size++;
 
 	return ERROR_OFF;
 }
