@@ -47,13 +47,14 @@ void addAnswer (Node * head);
 int AddNode (Node * head);
 int AddObject (Tree * tree);
 void consistentAllocatingMemory (Node ** currentNode);
-int dump (Node * currentNode, FILE * dumpFile);
+int dump (Tree * tree, FILE * dumpFile, FILE * infoFile);
 unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
 void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
 void InitializeNode (Node ** currentNode, char * mem, int * amountElementsBeforeBracket);
 int InitializeTree (Tree * tree, FILE * infoTree);
+void fullExplore (Node * x);
 
 
 int main (void) {
@@ -66,18 +67,32 @@ int main (void) {
 
 	char * mem = NULL;
 	getDataFromFile (dumpFile, &tree, &mem);
-	/*
+
 	while (true)
 		if (AddObject (&tree) == 228)
 			break;
-	*/
 
-
-	//CHECK_ERROR(dump (tree.head, dumpFile), "Problem with record in the tree.\n");
-
+	CHECK_ERROR(dump (&tree, dumpFile, infoTree), "Problem with record in the tree.\n");
 
 	return ERROR_OFF;
 }
+
+
+void fullExplore (Node * x) {
+
+	if (x != NULL) {
+
+		printf ("Title: ");
+		puts (x->data);
+		putchar ('\n');
+
+		fullExplore (x->left);
+		fullExplore (x->right);
+
+	}
+
+}
+
 
 
 void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
@@ -103,12 +118,13 @@ void InitializeNode (Node ** currentNode, char * mem, int * amountElementsBefore
 	if (!strcmp (bracketBuffer, "{")) {
 
 		* currentNode = (Node * ) malloc (sizeof (Node));
+		( * currentNode)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
 		sscanf (mem + ( * amountElementsBeforeBracket), "%s%n", answerBuffer, &currentAmountElementsBeforeWord);
-		puts (answerBuffer);
-		( * amountElementsBeforeBracket) += currentAmountElementsBeforeWord;
-
+		strcpy (( * currentNode)->data, answerBuffer);
+		printf ("Title: %s\n", ( * currentNode)->data);
 		( * currentNode)->right = NULL;
 		( * currentNode)->left = NULL;
+		( * amountElementsBeforeBracket) += currentAmountElementsBeforeWord;
 
 		InitializeNode (&( * currentNode)->left,  mem, amountElementsBeforeBracket);
 		InitializeNode (&( * currentNode)->right, mem, amountElementsBeforeBracket);
@@ -178,7 +194,7 @@ int AddNode (Node * currentNode) {
 	if (!strcmp (answer, "y")) 
 		AddNode (currentNode->left);
 
-	else if (!strcmp (answer, "n"))
+	else if (!strcmp (answer, "n")) 
 		AddNode (currentNode->right);
 
 	else if (!strcmp (answer, "#"))
@@ -197,18 +213,20 @@ int AddNode (Node * currentNode) {
 
 int AddObject (Tree * tree) {
 
+	tree->size++;
 	return AddNode (tree->head);
-
-	//tree->size++;
 }
 
 
-int dump (Node * currentNode, FILE * dumpFile) {
+int dump (Tree * tree, FILE * dumpFile, FILE * infoFile) {
 
 	dumpFile = fopen (DUMPFILE, "w");
 	CHECK_ERROR(!dumpFile, "Problem with opening tree.txt");
+	infoFile = fopen (INFOFILE, "w");
+	CHECK_ERROR(!infoFile, "Problem with opening info.txt");
 	
-	fullPrint (currentNode, dumpFile, 4);
+	fullPrint (tree->head, dumpFile, 4);
+	fprintf (infoFile, "%d", tree->size);
 	fclose (dumpFile);
 
 	return ERROR_OFF;
@@ -256,7 +274,7 @@ int getMainInfoFile (Tree * tree, FILE * infoTree) {
 int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	CHECK_ERROR(getMainInfoFile (tree, infoTree), "Problem with getting data from file info.txt .\n");
-	
+
 	if (tree->size == 0) {
 
 		Node * memObject = (Node * ) malloc (sizeof (Node));
