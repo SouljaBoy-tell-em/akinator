@@ -79,48 +79,6 @@ int main (void) {
 }
 
 
-void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
-
-	dumpFile = fopen ("tree.txt", "r");
-	int fileSize = FileSize (dumpFile);
-
-
-	InitializeNode (&(tree->head), dumpFile, NULL);
-}
-
-
-void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode) {
-
-	char bracketBuffer [MAXLENTITLE], answerBuffer [MAXLENTITLE];
-
-	fscanf (dumpFile, "%s", bracketBuffer);
-
-	if (!strcmp (bracketBuffer, "{")) {
-
-		* currentNode = (Node * ) malloc (sizeof (Node));
-		( * currentNode)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
-		fscanf (dumpFile, "%s", answerBuffer);
-		( * currentNode)->right = NULL;
-		( * currentNode)->left = NULL;
-		( * currentNode)->parent = parentCurrentNode;
-		strcpy (( * currentNode)->data, answerBuffer);
-
-		printf ("TITLE: %s\n", ( * currentNode)->data);
-
-		InitializeNode (&( * currentNode)->left,  dumpFile, * currentNode);
-		InitializeNode (&( * currentNode)->right, dumpFile, * currentNode);
-	}
-
-	if (!strcmp (bracketBuffer, "}")) {
-
-		ungetc ('}', dumpFile);
-		return;
-	}
-
-	fscanf (dumpFile, "%s", bracketBuffer);
-}
-
-
 void addAnswer (Node * lastNode) {
 
 	printf ("Is it %s?(y/n)\n", lastNode->data);
@@ -247,6 +205,15 @@ void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces) {
 }
 
 
+void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
+
+	dumpFile = fopen ("tree.txt", "r");
+	int fileSize = FileSize (dumpFile);
+
+	InitializeNode (&(tree->head), dumpFile, NULL);
+}
+
+
 int getMainInfoFile (Tree * tree, FILE * infoTree) {
 
 	infoTree = fopen (INFOFILE, "r");
@@ -254,6 +221,38 @@ int getMainInfoFile (Tree * tree, FILE * infoTree) {
 	fscanf (infoTree, "%d", &(tree->size));
 
 	return ERROR_OFF;
+}
+
+
+void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode) {
+
+	char bracketBuffer [MAXLENTITLE], answerBuffer [MAXLENTITLE];
+
+	fscanf (dumpFile, "%s", bracketBuffer);
+
+	if (!strcmp (bracketBuffer, "{")) {
+
+		* currentNode = (Node * ) malloc (sizeof (Node));
+		( * currentNode)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		fscanf (dumpFile, "%s", answerBuffer);
+		( * currentNode)->right = NULL;
+		( * currentNode)->left = NULL;
+		( * currentNode)->parent = parentCurrentNode;
+		strcpy (( * currentNode)->data, answerBuffer);
+
+		printf ("TITLE: %s\n", ( * currentNode)->data);
+
+		InitializeNode (&( * currentNode)->left,  dumpFile, * currentNode);
+		InitializeNode (&( * currentNode)->right, dumpFile, * currentNode);
+	}
+
+	if (!strcmp (bracketBuffer, "}")) {
+
+		ungetc ('}', dumpFile);
+		return;
+	}
+
+	fscanf (dumpFile, "%s", bracketBuffer);
 }
 
 
