@@ -11,7 +11,7 @@ enum error_code {
 };
 
 
-#define FRAME "##########################################"
+#define FRAME "############################################"
 #define MAXLENVARIANT               10
 #define MAXLENANSWER				10
 #define MAXLENTITLE 			   100
@@ -28,7 +28,7 @@ enum error_code {
                }                                          \
             } while(false)
 
-#define DEF_CMD(name, num)								  \
+#define DEF_CMD(name, num, ...)							  \
             CMD_##name = num,
 
 enum COMMANDS {
@@ -79,14 +79,19 @@ int main (void) {
 	getDataFromFile (dumpFile, &tree, &mem);
 
 	int answer = 0;
-	while ((answer = menu (&tree)) != CMD_q) {
+	while ((answer = menu (&tree))) {
+
+		#define DEF_CMD(name, num, ...)		 \
+			case num:						 \
+				__VA_ARGS__					 \
+				break;
 
 		switch (answer) {
 
-			case CMD_p: AddNode (tree.head, &tree.size);
-					   break;
+			#include "commands.h"
+			#undef DEF_CMD
 
-			default  : break;
+			default: break;
 		}
 	}
 	CHECK_ERROR(dump (&tree, dumpFile, infoTree), "Problem with record in the tree.\n");
@@ -300,7 +305,7 @@ int menu (Tree * tree) {
 	printf ("\n\n\n%s\n", FRAME                                 );
 	printf ("                     MENU:                      \n");
 	printf ("\n"                                                );
-	printf ("p) Play;                     c) Check full list;\n");
+	printf ("p) Play;                     c) Check list;     \n");
 	printf ("q) Quit;                                        \n");
 	printf ("\n"                                                );
 	printf ("%s\n", FRAME                                       );
@@ -310,7 +315,7 @@ int menu (Tree * tree) {
 
 	scanf ("%s", variant);
 
-	#define DEF_CMD(name, num)									\
+	#define DEF_CMD(name, num, ...)								\
 		if (!strcmp (variant, #name))							\
 			return num;							     			\
 		else													\
