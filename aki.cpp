@@ -42,6 +42,7 @@ typedef struct {
 } Tree;
 
 
+void getDataFromFile (FILE * dumpFile, Tree * tree, char * mem);
 void addAnswer (Node * head);
 int AddNode (Node * head);
 int AddObject (Tree * tree);
@@ -49,7 +50,9 @@ void consistentAllocatingMemory (Node ** currentNode);
 int dump (Node * currentNode, FILE * dumpFile);
 unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
+void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
+void InitializeNode (Node ** currentNode, char * mem, int * amountElementsBeforeBracket);
 int InitializeTree (Tree * tree, FILE * infoTree);
 
 
@@ -61,16 +64,58 @@ int main (void) {
 	FILE * dumpFile = NULL;
 	CHECK_ERROR(InitializeTree (&tree, infoTree), "Problem with initializing tree.\n");
 
-
+	char * mem = NULL;
+	getDataFromFile (dumpFile, &tree, &mem);
+	/*
 	while (true)
 		if (AddObject (&tree) == 228)
 			break;
+	*/
 
 
-	CHECK_ERROR(dump (tree.head, dumpFile), "Problem with record in the tree.\n");
+	//CHECK_ERROR(dump (tree.head, dumpFile), "Problem with record in the tree.\n");
 
 
 	return ERROR_OFF;
+}
+
+
+void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
+
+	dumpFile = fopen ("tree.txt", "r");
+	int fileSize = FileSize (dumpFile);
+	int startAmountElementsBeforeBracket = 0;
+
+
+	* mem = (char * ) calloc (fileSize, sizeof (char));
+	fread ( * mem, sizeof (char), fileSize, dumpFile);
+	InitializeNode (&(tree->head), * mem, &startAmountElementsBeforeBracket);
+}
+
+
+void InitializeNode (Node ** currentNode, char * mem, int * amountElementsBeforeBracket) {
+
+	char bracketBuffer [MAXLENTITLE], answerBuffer [MAXLENTITLE];
+	int currentAmountElementsBeforeBracket = 0, currentAmountElementsBeforeWord = 0;
+	sscanf (mem + ( * amountElementsBeforeBracket), "%s%n", bracketBuffer, &currentAmountElementsBeforeBracket);
+	( * amountElementsBeforeBracket) += currentAmountElementsBeforeBracket;
+
+	if (!strcmp (bracketBuffer, "{")) {
+
+		* currentNode = (Node * ) malloc (sizeof (Node));
+		sscanf (mem + ( * amountElementsBeforeBracket), "%s%n", answerBuffer, &currentAmountElementsBeforeWord);
+		puts (answerBuffer);
+		( * amountElementsBeforeBracket) += currentAmountElementsBeforeWord;
+
+		( * currentNode)->right = NULL;
+		( * currentNode)->left = NULL;
+
+		InitializeNode (&( * currentNode)->left,  mem, amountElementsBeforeBracket);
+		InitializeNode (&( * currentNode)->right, mem, amountElementsBeforeBracket);
+	}
+
+	if (!strcmp (bracketBuffer, "}"))
+		return;
 }
 
 
