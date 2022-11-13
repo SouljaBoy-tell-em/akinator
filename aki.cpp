@@ -233,14 +233,14 @@ void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentN
 	if (!strcmp (bracketBuffer, "{")) {
 
 		* currentNode = (Node * ) malloc (sizeof (Node));
+
 		( * currentNode)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
 		fscanf (dumpFile, "%s", answerBuffer);
+
 		( * currentNode)->right = NULL;
 		( * currentNode)->left = NULL;
 		( * currentNode)->parent = parentCurrentNode;
 		strcpy (( * currentNode)->data, answerBuffer);
-
-		printf ("TITLE: %s\n", ( * currentNode)->data);
 
 		InitializeNode (&( * currentNode)->left,  dumpFile, * currentNode);
 		InitializeNode (&( * currentNode)->right, dumpFile, * currentNode);
