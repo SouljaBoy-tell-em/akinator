@@ -30,6 +30,7 @@ enum error_code {
 typedef struct node {
 
 	char        * data;
+	struct node * parent;
 	struct node *  left;
 	struct node * right;
 } Node;
@@ -52,7 +53,7 @@ unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
 void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
-void InitializeNode (Node ** currentNode, char * mem, int * amountElementsBeforeBracket);
+void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode);
 int InitializeTree (Tree * tree, FILE * infoTree);
 void fullExplore (Node * x);
 
@@ -62,10 +63,10 @@ int main (void) {
 	Tree tree = {};
 
 	FILE * infoTree = NULL;
-	FILE * dumpFile = NULL;
 	CHECK_ERROR(InitializeTree (&tree, infoTree), "Problem with initializing tree.\n");
 
 	char * mem = NULL;
+	FILE * dumpFile = NULL;
 	getDataFromFile (dumpFile, &tree, &mem);
 
 	while (true)
@@ -78,60 +79,45 @@ int main (void) {
 }
 
 
-void fullExplore (Node * x) {
-
-	if (x != NULL) {
-
-		printf ("Title: ");
-		puts (x->data);
-		putchar ('\n');
-
-		fullExplore (x->left);
-		fullExplore (x->right);
-
-	}
-
-}
-
-
-
 void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
 
 	dumpFile = fopen ("tree.txt", "r");
 	int fileSize = FileSize (dumpFile);
-	int startAmountElementsBeforeBracket = 0;
 
 
-	* mem = (char * ) calloc (fileSize, sizeof (char));
-	fread ( * mem, sizeof (char), fileSize, dumpFile);
-	InitializeNode (&(tree->head), * mem, &startAmountElementsBeforeBracket);
+	InitializeNode (&(tree->head), dumpFile, NULL);
 }
 
 
-void InitializeNode (Node ** currentNode, char * mem, int * amountElementsBeforeBracket) {
+void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode) {
 
 	char bracketBuffer [MAXLENTITLE], answerBuffer [MAXLENTITLE];
-	int currentAmountElementsBeforeBracket = 0, currentAmountElementsBeforeWord = 0;
-	sscanf (mem + ( * amountElementsBeforeBracket), "%s%n", bracketBuffer, &currentAmountElementsBeforeBracket);
-	( * amountElementsBeforeBracket) += currentAmountElementsBeforeBracket;
+
+	fscanf (dumpFile, "%s", bracketBuffer);
 
 	if (!strcmp (bracketBuffer, "{")) {
 
 		* currentNode = (Node * ) malloc (sizeof (Node));
 		( * currentNode)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
-		sscanf (mem + ( * amountElementsBeforeBracket), "%s%n", answerBuffer, &currentAmountElementsBeforeWord);
-		strcpy (( * currentNode)->data, answerBuffer);
-		printf ("Title: %s\n", ( * currentNode)->data);
+		fscanf (dumpFile, "%s", answerBuffer);
 		( * currentNode)->right = NULL;
 		( * currentNode)->left = NULL;
-		( * amountElementsBeforeBracket) += currentAmountElementsBeforeWord;
+		( * currentNode)->parent = parentCurrentNode;
+		strcpy (( * currentNode)->data, answerBuffer);
 
-		InitializeNode (&( * currentNode)->left,  mem, amountElementsBeforeBracket);
-		InitializeNode (&( * currentNode)->right, mem, amountElementsBeforeBracket);
+		printf ("TITLE: %s\n", ( * currentNode)->data);
+
+		InitializeNode (&( * currentNode)->left,  dumpFile, * currentNode);
+		InitializeNode (&( * currentNode)->right, dumpFile, * currentNode);
 	}
 
-	if (!strcmp (bracketBuffer, "}"))
+	if (!strcmp (bracketBuffer, "}")) {
+
+		ungetc ('}', dumpFile);
 		return;
+	}
+
+	fscanf (dumpFile, "%s", bracketBuffer);
 }
 
 
