@@ -11,6 +11,8 @@ enum error_code {
 };
 
 
+#define FRAME "##########################################"
+#define MAXLENVARIANT               10
 #define MAXLENANSWER				10
 #define MAXLENTITLE 			   100
 #define HEADOBJECT 		 "poltorashka"
@@ -26,6 +28,15 @@ enum error_code {
                }                                          \
             } while(false)
 
+#define DEF_CMD(name, num)								  \
+            CMD_##name = num,
+
+enum COMMANDS {
+
+	#include "commands.h"
+};
+#undef DEF_CMD
+
 
 typedef struct node {
 
@@ -39,15 +50,13 @@ typedef struct {
 
 	Node *  head;
 	int     size;
-
 } Tree;
 
 
 void getDataFromFile (FILE * dumpFile, Tree * tree, char * mem);
-void addAnswer (Node * head);
-int AddNode (Node * head);
+void addAnswer (Node * lastNode, int * size);
+int AddNode (Node * currentNode, int * size);
 int AddObject (Tree * tree);
-void consistentAllocatingMemory (Node ** currentNode);
 int dump (Tree * tree, FILE * dumpFile, FILE * infoFile);
 unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
@@ -55,7 +64,7 @@ void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
 void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode);
 int InitializeTree (Tree * tree, FILE * infoTree);
-void fullExplore (Node * x);
+int menu (Tree * tree);
 
 
 int main (void) {
@@ -69,17 +78,24 @@ int main (void) {
 	FILE * dumpFile = NULL;
 	getDataFromFile (dumpFile, &tree, &mem);
 
-	while (true)
-		if (AddObject (&tree) == 228)
-			break;
+	int answer = 0;
+	while ((answer = menu (&tree)) != CMD_q) {
 
+		switch (answer) {
+
+			case CMD_p: AddNode (tree.head, &tree.size);
+					   break;
+
+			default  : break;
+		}
+	}
 	CHECK_ERROR(dump (&tree, dumpFile, infoTree), "Problem with record in the tree.\n");
 
 	return ERROR_OFF;
 }
 
 
-void addAnswer (Node * lastNode) {
+void addAnswer (Node * lastNode, int * size) {
 
 	printf ("Is it %s?(y/n)\n", lastNode->data);
 
@@ -115,6 +131,8 @@ void addAnswer (Node * lastNode) {
 		(lastNode->right)->left  = NULL;
 		(lastNode->right)->right = NULL;
 
+		( * size)++;
+
 		return;
 	}
 
@@ -123,11 +141,11 @@ void addAnswer (Node * lastNode) {
 }
 
 
-int AddNode (Node * currentNode) {
+int AddNode (Node * currentNode, int * size) {
 
 	if (currentNode->left == NULL && currentNode->right == NULL) {
 
-		addAnswer (currentNode);
+		addAnswer (currentNode, size);
 		return ERROR_OFF;
 	}
 
@@ -136,10 +154,10 @@ int AddNode (Node * currentNode) {
 	scanf ("%s", answer);
 		
 	if (!strcmp (answer, "y")) 
-		AddNode (currentNode->left);
+		AddNode (currentNode->left, size);
 
 	else if (!strcmp (answer, "n")) 
-		AddNode (currentNode->right);
+		AddNode (currentNode->right, size);
 
 	else if (!strcmp (answer, "#"))
 		return 228;
@@ -157,8 +175,7 @@ int AddNode (Node * currentNode) {
 
 int AddObject (Tree * tree) {
 
-	tree->size++;
-	return AddNode (tree->head);
+	return AddNode (tree->head, &(tree->size));
 }
 
 
@@ -275,3 +292,32 @@ int InitializeTree (Tree * tree, FILE * infoTree) {
 	return ERROR_OFF;
 }
 
+
+int menu (Tree * tree) {
+
+	char * variant = (char * ) calloc (MAXLENVARIANT, sizeof (char));
+
+	printf ("\n\n\n%s\n", FRAME                                 );
+	printf ("                     MENU:                      \n");
+	printf ("\n"                                                );
+	printf ("p) Play;                     c) Check full list;\n");
+	printf ("q) Quit;                                        \n");
+	printf ("\n"                                                );
+	printf ("%s\n", FRAME                                       );
+	printf ("\n"                                                );
+	printf ("Amount of elements in the tree: %d\n",   tree->size);
+	puts ("Please, input one of the variant menu:"              );
+
+	scanf ("%s", variant);
+
+	#define DEF_CMD(name, num)									\
+		if (!strcmp (variant, #name))							\
+			return num;							     			\
+		else													\
+			printf ("Input true variant.\n");
+
+	#include "commands.h"
+	#undef DEF_CMD
+
+	return -1;
+}
