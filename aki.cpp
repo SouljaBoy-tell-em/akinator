@@ -11,7 +11,11 @@ enum error_code {
 };
 
 
+#define YES "y"
+#define NO  "n"
 #define FRAME "############################################"
+#define POISON					 "###"
+#define CANARY				 "##END##"
 #define MAXLENVARIANT               10
 #define MAXLENANSWER				10
 #define MAXLENTITLE 			   100
@@ -38,6 +42,14 @@ enum COMMANDS {
 #undef DEF_CMD
 
 
+typedef struct {
+
+	char * answer;
+	char ** data;
+	int 	size;
+	int capacity;
+} Stack;
+
 typedef struct node {
 
 	char        * data;
@@ -49,28 +61,34 @@ typedef struct node {
 typedef struct {
 
 	Node *  head;
+	Stack  stack;
 	int     size;
 } Tree;
 
 
 void getDataFromFile (FILE * dumpFile, Tree * tree, char * mem);
-void addAnswer (Node * lastNode, int * size);
-int AddNode (Node * currentNode, int * size);
-int AddObject (Tree * tree);
+void addAnswer (Node * lastNode, int * size, Stack * stack);
+int AddNode (Node * currentNode, int * size, Stack * stack);
 int dump (Tree * tree, FILE * dumpFile, FILE * infoFile);
 unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
 void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
+void infoLastCharacter (Tree * tree);
 void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode);
 int InitializeTree (Tree * tree, FILE * infoTree);
 int menu (Tree * tree);
 
 
+void StackCtor (Stack * stack, int capacity);
+void StackPush (Stack * stack, char * sign, char * answer);
+void StackClean (Stack * stack);
+char * StackPop (Stack * stack);
+
+
 int main (void) {
 
 	Tree tree = {};
-
 	FILE * infoTree = NULL;
 	CHECK_ERROR(InitializeTree (&tree, infoTree), "Problem with initializing tree.\n");
 
@@ -100,7 +118,78 @@ int main (void) {
 }
 
 
-void addAnswer (Node * lastNode, int * size) {
+void infoLastCharacter (Tree * tree) {
+
+	printf ("%s is:\n", (tree->stack).answer);
+
+	while ((tree->stack).size != 0)
+		printf ("%s\n", StackPop (&(tree->stack)));
+
+}
+
+
+void StackCtor (Stack * stack, int capacity) {
+
+	stack->size = 0;
+	stack->capacity = capacity;
+
+	int i = 0, j = 0;
+	stack->data = (char ** ) calloc (capacity, sizeof (char * ));
+	for (i = 0; i < capacity; i++)
+		stack->data[i] = (char * ) calloc (MAXLENTITLE, sizeof (char));
+
+	for (i = 0; i < stack->capacity; i++)
+		strcpy (stack->data[i], POISON);
+	strcpy (stack->data[0], CANARY);
+
+	stack->answer = (char * ) calloc (MAXLENTITLE, sizeof (char));
+	strcpy (stack->answer, POISON);
+}
+
+
+void StackPush (Stack * stack, char * sign, char * answer) {
+
+	if (!strcmp (sign, "y")) {
+
+		strcpy (stack->data [stack->size], answer);
+		stack->size++;
+	}
+
+	if (!strcmp (sign, "n")) {
+
+		strcpy (stack->data [stack->size], "not_");
+		strcpy (stack->data [stack->size] + 4, answer);
+		stack->size++;
+	}
+
+	strcpy (stack->data [stack->size], CANARY);
+}
+
+void StackClean (Stack * stack) {
+
+	int i = 0;
+	for (i = 0; i < stack->capacity; i++)
+		strcpy (stack->data[i], POISON);
+
+	strcpy (stack->answer, "NULL");
+	strcpy (stack->data[0], CANARY);
+	stack->size = 0;
+}
+
+
+char * StackPop (Stack * stack) {
+
+	char * save = (char * ) calloc (MAXLENTITLE, sizeof (char));
+	strcpy (save, stack->data[stack->size - 1]);
+	strcpy (stack->data [stack->size - 1], POISON);
+	strcpy (stack->data [stack->size], CANARY);
+	stack->size--;
+
+	return save;
+}
+
+
+void addAnswer (Node * lastNode, int * size, Stack * stack) {
 
 	printf ("Is it %s?(y/n)\n", lastNode->data);
 
@@ -109,6 +198,7 @@ void addAnswer (Node * lastNode, int * size) {
 
 	if (!strcmp (answer, "y")) {
 
+		strcpy (stack->answer, lastNode->data);
 		printf ("Yes, I won!\n\n");
 		return;
 	}
@@ -123,6 +213,9 @@ void addAnswer (Node * lastNode, int * size) {
 		printf ("\nHow does %s differ from %s? Input: ", trueAnswer, lastNode->data);
 		scanf ("%s", difference);
 
+		StackPush (stack, YES, difference);
+		strcpy (stack->answer, trueAnswer);
+
 		lastNode->left =  (Node * ) malloc (sizeof (Node));
 		(lastNode->left)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
 		lastNode->right = (Node * ) malloc (sizeof (Node));
@@ -135,7 +228,6 @@ void addAnswer (Node * lastNode, int * size) {
 		(lastNode->left)->right  = NULL;
 		(lastNode->right)->left  = NULL;
 		(lastNode->right)->right = NULL;
-
 		( * size)++;
 
 		return;
@@ -146,11 +238,11 @@ void addAnswer (Node * lastNode, int * size) {
 }
 
 
-int AddNode (Node * currentNode, int * size) {
+int AddNode (Node * currentNode, int * size, Stack * stack) {
 
 	if (currentNode->left == NULL && currentNode->right == NULL) {
 
-		addAnswer (currentNode, size);
+		addAnswer (currentNode, size, stack);
 		return ERROR_OFF;
 	}
 
@@ -158,14 +250,17 @@ int AddNode (Node * currentNode, int * size) {
 	char answer [MAXLENANSWER]= " ";
 	scanf ("%s", answer);
 		
-	if (!strcmp (answer, "y")) 
-		AddNode (currentNode->left, size);
+	if (!strcmp (answer, "y")) {
 
-	else if (!strcmp (answer, "n")) 
-		AddNode (currentNode->right, size);
+		StackPush (stack, YES, currentNode->data);
+		AddNode (currentNode->left, size, stack);
+	}
 
-	else if (!strcmp (answer, "#"))
-		return 228;
+	else if (!strcmp (answer, "n")) {
+
+		StackPush (stack, NO, currentNode->data);
+		AddNode (currentNode->right, size, stack);
+	}
 
 	else {
 
@@ -175,12 +270,6 @@ int AddNode (Node * currentNode, int * size) {
 	}
 
 	return ERROR_OFF;
-}
-
-
-int AddObject (Tree * tree) {
-
-	return AddNode (tree->head, &(tree->size));
 }
 
 
@@ -281,6 +370,7 @@ void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentN
 int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	CHECK_ERROR(getMainInfoFile (tree, infoTree), "Problem with getting data from file info.txt .\n");
+	StackCtor (&(tree->stack), 30);
 
 	if (tree->size == 0) {
 
@@ -305,7 +395,7 @@ int menu (Tree * tree) {
 	printf ("\n\n\n%s\n", FRAME                                 );
 	printf ("                     MENU:                      \n");
 	printf ("\n"                                                );
-	printf ("p) Play;                     c) Check list;     \n");
+	printf ("p) Play;              i) Info last character;   \n");
 	printf ("q) Quit;                                        \n");
 	printf ("\n"                                                );
 	printf ("%s\n", FRAME                                       );
@@ -317,9 +407,7 @@ int menu (Tree * tree) {
 
 	#define DEF_CMD(name, num, ...)								\
 		if (!strcmp (variant, #name))							\
-			return num;							     			\
-		else													\
-			printf ("Input true variant.\n");
+			return num;							     			
 
 	#include "commands.h"
 	#undef DEF_CMD
