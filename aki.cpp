@@ -13,6 +13,8 @@ enum error_code {
 
 const char * YES = "y";
 const char * NO =  "n";
+
+
 #define FRAME "############################################"
 #define POISON					 "###"
 #define CANARY				 "##END##"
@@ -34,6 +36,7 @@ const char * NO =  "n";
 
 #define DEF_CMD(name, num, ...)							  \
             CMD_##name = num,
+
 
 enum COMMANDS {
 
