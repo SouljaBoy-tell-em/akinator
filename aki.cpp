@@ -168,6 +168,12 @@ void exploreObject (Node * currentNode, char * object, bool * flagExplore) {
 
 void infoLastCharacter (Tree * tree) {
 
+	if ((tree->stack).size == 0) {
+
+		printf ("Character wasn't defined.\n");
+		return;
+	}
+
 	printf ("%s is:\n", (tree->stack).answer);
 
 	while ((tree->stack).size != 0)
