@@ -66,6 +66,7 @@ typedef struct {
 } Tree;
 
 
+void AddObject (Tree * tree);
 void getDataFromFile (FILE * dumpFile, Tree * tree, char * mem);
 void addAnswer (Node * lastNode, int * size, Stack * stack);
 int AddNode (Node * currentNode, int * size, Stack * stack);
@@ -118,6 +119,23 @@ int main (void) {
 }
 
 
+void AddObject (Tree * tree) {
+
+	StackClean(&(tree->stack));
+	AddNode (tree->head, &(tree->size), &(tree->stack));
+}
+
+
+void compare2Object (Tree * tree) {
+
+	Stack stack1 = {},
+		  stack2 = {};
+
+	StackCtor (&stack1, &stack2);
+
+}
+
+
 void infoLastCharacter (Tree * tree) {
 
 	printf ("%s is:\n", (tree->stack).answer);
@@ -149,13 +167,13 @@ void StackCtor (Stack * stack, int capacity) {
 
 void StackPush (Stack * stack, char * sign, char * answer) {
 
-	if (!strcmp (sign, "y")) {
+	if (!strcmp (sign, YES)) {
 
 		strcpy (stack->data [stack->size], answer);
 		stack->size++;
 	}
 
-	if (!strcmp (sign, "n")) {
+	if (!strcmp (sign, NO)) {
 
 		strcpy (stack->data [stack->size], "not_");
 		strcpy (stack->data [stack->size] + 4, answer);
@@ -196,14 +214,14 @@ void addAnswer (Node * lastNode, int * size, Stack * stack) {
 	char answer [MAXLENANSWER] = " ";
 	scanf ("%s", answer);
 
-	if (!strcmp (answer, "y")) {
+	if (!strcmp (answer, YES)) {
 
 		strcpy (stack->answer, lastNode->data);
 		printf ("Yes, I won!\n\n");
 		return;
 	}
 
-	else if (!strcmp (answer, "n")) {
+	else if (!strcmp (answer, NO)) {
 
 		char trueAnswer [MAXLENTITLE];
 		char difference [MAXLENTITLE];
@@ -250,13 +268,13 @@ int AddNode (Node * currentNode, int * size, Stack * stack) {
 	char answer [MAXLENANSWER]= " ";
 	scanf ("%s", answer);
 		
-	if (!strcmp (answer, "y")) {
+	if (!strcmp (answer, YES)) {
 
 		StackPush (stack, YES, currentNode->data);
 		AddNode (currentNode->left, size, stack);
 	}
 
-	else if (!strcmp (answer, "n")) {
+	else if (!strcmp (answer, NO)) {
 
 		StackPush (stack, NO, currentNode->data);
 		AddNode (currentNode->right, size, stack);
@@ -394,10 +412,12 @@ int menu (Tree * tree) {
 
 	printf ("\n\n\n%s\n", FRAME                                 );
 	printf ("                     MENU:                      \n");
-	printf ("\n"                                                );
-	printf ("p) Play;              i) Info last character;   \n");
+	printf ("                                                \n");
+	printf ("p) Play;              							 \n");
+	printf ("i) Info last character;   						 \n");
+	printf ("c) Compare 2 last characters;					 \n");
 	printf ("q) Quit;                                        \n");
-	printf ("\n"                                                );
+	printf ("												 \n");
 	printf ("%s\n", FRAME                                       );
 	printf ("\n"                                                );
 	printf ("Amount of elements in the tree: %d\n",   tree->size);
