@@ -11,8 +11,8 @@ enum error_code {
 };
 
 
-#define YES "y"
-#define NO  "n"
+const char * YES = "y";
+const char * NO =  "n";
 #define FRAME "############################################"
 #define POISON					 "###"
 #define CANARY				 "##END##"
@@ -71,6 +71,8 @@ void getDataFromFile (FILE * dumpFile, Tree * tree, char * mem);
 void addAnswer (Node * lastNode, int * size, Stack * stack);
 int AddNode (Node * currentNode, int * size, Stack * stack);
 int dump (Tree * tree, FILE * dumpFile, FILE * infoFile);
+void existenceCheck (Tree * tree);
+void exploreObject (Node * currentNode, char * object, bool * flagExplore);
 unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
 void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
@@ -126,13 +128,39 @@ void AddObject (Tree * tree) {
 }
 
 
-void compare2Object (Tree * tree) {
+void existenceCheck (Tree * tree) {
 
-	Stack stack1 = {},
-		  stack2 = {};
+	char * object = (char * ) calloc (MAXLENTITLE, sizeof (char));
+	bool flagExplore = false;
 
-	StackCtor (&stack1, &stack2);
+	printf ("Input desired object:\n");
+	scanf ("%s", object);
 
+	exploreObject (tree->head, object, &flagExplore);
+
+	if (flagExplore)
+		printf ("This object contains in the tree.\n");
+
+	else
+		printf ("This object don't contain in the tree.\n");
+
+	free (object);
+}
+
+
+void exploreObject (Node * currentNode, char * object, bool * flagExplore) {
+
+	if (currentNode != NULL) {
+
+		if (!strcmp (currentNode->data, object)) {
+
+			* flagExplore = true;
+			return;
+		}
+
+		exploreObject (currentNode->left , object, flagExplore);
+		exploreObject (currentNode->right, object, flagExplore);
+	}
 }
 
 
@@ -165,7 +193,7 @@ void StackCtor (Stack * stack, int capacity) {
 }
 
 
-void StackPush (Stack * stack, char * sign, char * answer) {
+void StackPush (Stack * stack, const char * sign, char * answer) {
 
 	if (!strcmp (sign, YES)) {
 
@@ -415,7 +443,7 @@ int menu (Tree * tree) {
 	printf ("                                                \n");
 	printf ("p) Play;              							 \n");
 	printf ("i) Info last character;   						 \n");
-	printf ("c) Compare 2 last characters;					 \n");
+	printf ("e) Explore object in the tree;					 \n");
 	printf ("q) Quit;                                        \n");
 	printf ("												 \n");
 	printf ("%s\n", FRAME                                       );
