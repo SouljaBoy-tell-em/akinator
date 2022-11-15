@@ -67,7 +67,6 @@ typedef struct {
 
 
 void AddObject (Tree * tree);
-void getDataFromFile (FILE * dumpFile, Tree * tree, char * mem);
 void addAnswer (Node * lastNode, int * size, Stack * stack);
 int AddNode (Node * currentNode, int * size, Stack * stack);
 int dump (Tree * tree, FILE * dumpFile, FILE * infoFile);
@@ -84,7 +83,7 @@ int menu (Tree * tree);
 
 
 void StackCtor (Stack * stack, int capacity);
-void StackPush (Stack * stack, char * sign, char * answer);
+void StackPush (Stack * stack, const char * sign, char * answer);
 void StackClean (Stack * stack);
 char * StackPop (Stack * stack);
 
