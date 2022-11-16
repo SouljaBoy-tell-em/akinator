@@ -65,6 +65,7 @@ typedef struct {
 
 	Node *  head;
 	Stack  stack;
+	Stack  nextStack;
 	int     size;
 } Tree;
 
@@ -125,7 +126,18 @@ int main (void) {
 
 void AddObject (Tree * tree) {
 
-	StackClean(&(tree->stack));
+	if ((tree->stack).size) {
+
+		if ((tree->nextStack).size) {
+
+			tree->stack = tree->nextStack;
+			StackClean(&(tree->nextStack));
+		}
+
+		AddNode (tree->head, &(tree->size), &(tree->nextStack));
+		return;
+	}
+
 	AddNode (tree->head, &(tree->size), &(tree->stack));
 }
 
@@ -168,17 +180,26 @@ void exploreObject (Node * currentNode, char * object, bool * flagExplore) {
 
 void infoLastCharacter (Tree * tree) {
 
-	if ((tree->stack).size == 0) {
+	if ((tree->nextStack).size) {
 
-		printf ("Character wasn't defined.\n");
+		printf ("%s is:\n", (tree->nextStack).answer);
+		while ((tree->nextStack).size != 0)
+			printf ("%s\n", StackPop (&(tree->nextStack)));
+
+		StackClean (&(tree->stack));
 		return;
 	}
 
-	printf ("%s is:\n", (tree->stack).answer);
+	if ((tree->stack).size) {
 
-	while ((tree->stack).size != 0)
-		printf ("%s\n", StackPop (&(tree->stack)));
+		printf ("%s is:\n", (tree->stack).answer);
+		while ((tree->stack).size != 0)
+			printf ("%s\n", StackPop (&(tree->stack)));
 
+		return;
+	}
+
+	printf ("You didn't guess character.\n");
 }
 
 
@@ -424,7 +445,8 @@ void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentN
 int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	CHECK_ERROR(getMainInfoFile (tree, infoTree), "Problem with getting data from file info.txt .\n");
-	StackCtor (&(tree->stack), 30);
+	StackCtor (&(tree->stack),     30);
+	StackCtor (&(tree->nextStack), 30);
 
 	if (tree->size == 0) {
 
