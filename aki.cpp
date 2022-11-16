@@ -73,6 +73,7 @@ typedef struct {
 void AddObject (Tree * tree);
 void addAnswer (Node * lastNode, int * size, Stack * stack);
 int AddNode (Node * currentNode, int * size, Stack * stack);
+void compare2Characters (Tree * tree);
 int dump (Tree * tree, FILE * dumpFile, FILE * infoFile);
 void existenceCheck (Tree * tree);
 void exploreObject (Node * currentNode, char * object, bool * flagExplore);
@@ -139,6 +140,24 @@ void AddObject (Tree * tree) {
 	}
 
 	AddNode (tree->head, &(tree->size), &(tree->stack));
+}
+
+
+void compare2Characters (Tree * tree) {
+
+	int minAmountFeatures = 		((tree->stack).size <= (tree->nextStack).size) ? 
+										(tree->stack).size : (tree->nextStack).size;
+	char ** listFeatures  = (char ** ) calloc (minAmountFeatures, sizeof (char * ));
+
+	printf ("Similarities:\n");
+	int i = 0;
+	for (i = minAmountFeatures; i >= 0; i--)
+		if (!strcmp ((tree->stack).data[i], (tree->nextStack).data[i]))
+			printf ("%s\n", (tree->stack).data[i]);
+
+	StackClean (&(tree->stack));
+	StackClean (&(tree->nextStack));
+	free (listFeatures);
 }
 
 
@@ -474,6 +493,7 @@ int menu (Tree * tree) {
 	printf ("p) Play;              							 \n");
 	printf ("i) Info last character;   						 \n");
 	printf ("e) Explore object in the tree;					 \n");
+	printf ("c) Compare 2 last objects;						 \n");
 	printf ("q) Quit;                                        \n");
 	printf ("												 \n");
 	printf ("%s\n", FRAME                                       );
