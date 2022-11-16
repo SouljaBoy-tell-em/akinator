@@ -15,17 +15,18 @@ const char * YES = "y";
 const char * NO =  "n";
 
 
+#define STACKSIZE										  30
 #define FRAME "############################################"
-#define POISON					 "###"
-#define CANARY				 "##END##"
-#define MAXLENVARIANT               10
-#define MAXLENANSWER				10
-#define MAXLENTITLE 			   100
-#define HEADOBJECT 		 "poltorashka"
-#define DUMPFILE   		    "tree.txt"
-#define INFOFILE 			"info.txt"
-#define SIZECOEFFICIENT 			 2
-#define STARTSIZETREE   			 3
+#define POISON										   "###"
+#define CANARY									   "##END##"
+#define MAXLENVARIANT         						      10
+#define MAXLENANSWER							     	  10
+#define MAXLENTITLE 			   						 100
+#define HEADOBJECT 							   "poltorashka"
+#define DUMPFILE   		 					      "tree.txt"
+#define INFOFILE 								  "info.txt"
+#define SIZECOEFFICIENT 								  2
+#define STARTSIZETREE   								  3
 #define CHECK_ERROR(condition, message_error) 		      \
             do {                                          \
                if  (condition) {                          \
@@ -48,46 +49,46 @@ enum COMMANDS {
 typedef struct {
 
 	char * answer;
-	char ** data;
-	int 	size;
-	int capacity;
+	char **  data;
+	int 	 size;
+	int  capacity;
 } Stack;
 
 typedef struct node {
 
-	char        * data;
+	char        *   data;
 	struct node * parent;
-	struct node *  left;
-	struct node * right;
+	struct node *   left;
+	struct node *  right;
 } Node;
 
 typedef struct {
 
-	Node *  head;
-	Stack  stack;
+	Node *      head;
+	Stack      stack;
 	Stack  nextStack;
-	int     size;
+	int         size;
 } Tree;
 
 
 void AddObject (Tree * tree);
-void addAnswer (Node * lastNode, int * size, Stack * stack);
+int addAnswer (Node * lastNode, int * size, Stack * stack);
 int AddNode (Node * currentNode, int * size, Stack * stack);
-void compare2Characters (Tree * tree);
+int compare2Characters (Tree * tree);
 int dump (Tree * tree, FILE * dumpFile, FILE * infoFile);
-void existenceCheck (Tree * tree);
+int existenceCheck (Tree * tree);
 void exploreObject (Node * currentNode, char * object, bool * flagExplore);
 unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
-void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
+int getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
 void infoLastCharacter (Tree * tree);
-void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode);
+int InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode);
 int InitializeTree (Tree * tree, FILE * infoTree);
 int menu (Tree * tree);
 
 
-void StackCtor (Stack * stack, int capacity);
+int StackCtor (Stack * stack, int capacity);
 void StackPush (Stack * stack, const char * sign, char * answer);
 void StackClean (Stack * stack);
 char * StackPop (Stack * stack);
@@ -143,11 +144,19 @@ void AddObject (Tree * tree) {
 }
 
 
-void compare2Characters (Tree * tree) {
+int compare2Characters (Tree * tree) {
+
+	if (!(tree->stack).size || !(tree->stack).size) {
+
+		printf ("You didn't input 2 objects.\n");
+		return ERROR_OFF;
+	}
 
 	int minAmountFeatures = 		((tree->stack).size <= (tree->nextStack).size) ? 
-										(tree->stack).size : (tree->nextStack).size;
+									 (tree->stack).size :  (tree->nextStack).size  ;
+
 	char ** listFeatures  = (char ** ) calloc (minAmountFeatures, sizeof (char * ));
+	CHECK_ERROR(!listFeatures, "Problem with allocating memory for listFeatures. ");
 
 	printf ("Similarities:\n");
 	int i = 0;
@@ -158,26 +167,30 @@ void compare2Characters (Tree * tree) {
 	StackClean (&(tree->stack));
 	StackClean (&(tree->nextStack));
 	free (listFeatures);
+
+	return ERROR_OFF;
 }
 
 
-void existenceCheck (Tree * tree) {
+int existenceCheck (Tree * tree) {
 
 	char * object = (char * ) calloc (MAXLENTITLE, sizeof (char));
-	bool flagExplore = false;
+	CHECK_ERROR(!object, "Problem with allocating memory for object.");
 
+	bool flagExplore = false;
 	printf ("Input desired object:\n");
 	scanf ("%s", object);
-
 	exploreObject (tree->head, object, &flagExplore);
 
 	if (flagExplore)
-		printf ("This object contains in the tree.\n");
+		printf ("This object contains in the tree.     \n");
 
 	else
 		printf ("This object don't contain in the tree.\n");
 
 	free (object);
+
+	return ERROR_OFF;
 }
 
 
@@ -222,22 +235,30 @@ void infoLastCharacter (Tree * tree) {
 }
 
 
-void StackCtor (Stack * stack, int capacity) {
+int StackCtor (Stack * stack, int capacity) {
 
 	stack->size = 0;
 	stack->capacity = capacity;
 
-	int i = 0, j = 0;
 	stack->data = (char ** ) calloc (capacity, sizeof (char * ));
-	for (i = 0; i < capacity; i++)
+	CHECK_ERROR(!stack->data, "Problem with allocating memory for stack->data.");
+
+	int i = 0, j = 0;
+	for (i = 0; i < capacity; i++) {
+
 		stack->data[i] = (char * ) calloc (MAXLENTITLE, sizeof (char));
+		CHECK_ERROR(!stack->data, "Problem with allocating memory for stack->data[...].");
+	}
 
 	for (i = 0; i < stack->capacity; i++)
 		strcpy (stack->data[i], POISON);
 	strcpy (stack->data[0], CANARY);
 
 	stack->answer = (char * ) calloc (MAXLENTITLE, sizeof (char));
+	CHECK_ERROR(!stack->answer, "Problem with allocating memory for stack->answer.");
 	strcpy (stack->answer, POISON);
+
+	return ERROR_OFF;
 }
 
 
@@ -274,16 +295,17 @@ void StackClean (Stack * stack) {
 char * StackPop (Stack * stack) {
 
 	char * save = (char * ) calloc (MAXLENTITLE, sizeof (char));
-	strcpy (save, stack->data[stack->size - 1]);
+
+	strcpy (save,    stack->data[stack->size - 1]);
 	strcpy (stack->data [stack->size - 1], POISON);
-	strcpy (stack->data [stack->size], CANARY);
+	strcpy (stack->data [stack->size],     CANARY);
 	stack->size--;
 
 	return save;
 }
 
 
-void addAnswer (Node * lastNode, int * size, Stack * stack) {
+int addAnswer (Node * lastNode, int * size, Stack * stack) {
 
 	printf ("Is it %s?(y/n)\n", lastNode->data);
 
@@ -294,7 +316,7 @@ void addAnswer (Node * lastNode, int * size, Stack * stack) {
 
 		strcpy (stack->answer, lastNode->data);
 		printf ("Yes, I won!\n\n");
-		return;
+		return ERROR_OFF;
 	}
 
 	else if (!strcmp (answer, NO)) {
@@ -310,10 +332,17 @@ void addAnswer (Node * lastNode, int * size, Stack * stack) {
 		StackPush (stack, YES, difference);
 		strcpy (stack->answer, trueAnswer);
 
-		lastNode->left =  (Node * ) malloc (sizeof (Node));
-		(lastNode->left)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
-		lastNode->right = (Node * ) malloc (sizeof (Node));
-		(lastNode->right)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		lastNode->left          = (Node * ) malloc                  			(sizeof (Node));
+		CHECK_ERROR(!stack->data, "Problem with allocating memory for lastNode->left.         ");
+
+		(lastNode->left)->data  = (char * ) malloc (MAXLENTITLE * 			     sizeof (char));
+		CHECK_ERROR(!stack->data, "Problem with allocating memory for (lastNode->left)->data. ");
+
+		lastNode->right 		= (Node * ) malloc 								(sizeof (Node));
+		CHECK_ERROR(!stack->data, "Problem with allocating memory for lastNode->right.        ");
+
+		(lastNode->right)->data = (char * ) malloc (MAXLENTITLE * 				 sizeof (char));
+		CHECK_ERROR(!stack->data, "Problem with allocating memory for (lastNode->right)->data.");
 
 		strcpy ((lastNode->right)->data, lastNode->data);
 		strcpy (lastNode->data         , difference);
@@ -324,11 +353,13 @@ void addAnswer (Node * lastNode, int * size, Stack * stack) {
 		(lastNode->right)->right = NULL;
 		( * size)++;
 
-		return;
+		return ERROR_OFF;
 	}
 
 	else
 		printf ("Input fake answer! Please input (y/n).\n");
+
+	return ERROR_OFF;
 }
 
 
@@ -394,28 +425,31 @@ unsigned long FileSize (FILE * infoTree) {
 
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces) {
 
-		fprintf (dumpFile, "\n%*s", amountSpaces, "{");
-		fprintf (dumpFile, " %s", currentNode->data);
+	fprintf (dumpFile, "\n%*s", amountSpaces, "{");
+	fprintf (dumpFile, " %s", currentNode->data);
 
-		if (currentNode->left)
-			fullPrint (currentNode->left,  dumpFile, amountSpaces + 4);
+	if (currentNode->left)
+		fullPrint (currentNode->left,  dumpFile, amountSpaces + 4);
 
-		if (currentNode->right)
-			fullPrint (currentNode->right, dumpFile, amountSpaces + 4);
+	if (currentNode->right)
+		fullPrint (currentNode->right, dumpFile, amountSpaces + 4);
 
-		if (!currentNode->left && !currentNode->right)
-			amountSpaces = 2;
+	if (!currentNode->left && !currentNode->right)
+		amountSpaces = 2;
 
-		fprintf (dumpFile , "%*s\n", amountSpaces, "}");
+	fprintf (dumpFile , "%*s\n", amountSpaces, "}");
 }
 
 
-void getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
+int getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
 
 	dumpFile = fopen ("tree.txt", "r");
-	int fileSize = FileSize (dumpFile);
+	CHECK_ERROR(!dumpFile, "Problem with opening tree.txt");
 
+	int fileSize = FileSize (dumpFile);
 	InitializeNode (&(tree->head), dumpFile, NULL);
+
+	return ERROR_OFF;
 }
 
 
@@ -429,22 +463,25 @@ int getMainInfoFile (Tree * tree, FILE * infoTree) {
 }
 
 
-void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode) {
+int InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode) {
 
-	char bracketBuffer [MAXLENTITLE], answerBuffer [MAXLENTITLE];
+	char bracketBuffer [MAXLENTITLE], 
+		  answerBuffer [MAXLENTITLE];
 
 	fscanf (dumpFile, "%s", bracketBuffer);
-
 	if (!strcmp (bracketBuffer, "{")) {
 
-		* currentNode = (Node * ) malloc (sizeof (Node));
+		* currentNode = (Node * )          malloc 								(sizeof (Node));
+		CHECK_ERROR(!( * currentNode), 		 "Problem with allocating memory for currentNode.");
 
-		( * currentNode)->data = (char * ) malloc (MAXLENTITLE * sizeof (char));
-		fscanf (dumpFile, "%s", answerBuffer);
+		( * currentNode)->data = (char * ) malloc 				  (MAXLENTITLE * sizeof (char));
+		CHECK_ERROR(!( * currentNode), "Problem with allocating memory for currentNode->data.");
 
-		( * currentNode)->right = NULL;
-		( * currentNode)->left = NULL;
-		( * currentNode)->parent = parentCurrentNode;
+		( * currentNode)->right  =               NULL;
+		( * currentNode)->left   =               NULL;
+		( * currentNode)->parent =  parentCurrentNode;
+
+		fscanf (dumpFile, "%s",         answerBuffer);
 		strcpy (( * currentNode)->data, answerBuffer);
 
 		InitializeNode (&( * currentNode)->left,  dumpFile, * currentNode);
@@ -454,30 +491,36 @@ void InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentN
 	if (!strcmp (bracketBuffer, "}")) {
 
 		ungetc ('}', dumpFile);
-		return;
+		return ERROR_OFF;
 	}
 
 	fscanf (dumpFile, "%s", bracketBuffer);
+
+	return ERROR_OFF;
 }
 
 
 int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	CHECK_ERROR(getMainInfoFile (tree, infoTree), "Problem with getting data from file info.txt .\n");
-	StackCtor (&(tree->stack),     30);
-	StackCtor (&(tree->nextStack), 30);
 
 	if (tree->size == 0) {
 
-		Node * memObject = (Node * ) malloc (sizeof (Node));
-		memObject->data  = (char * ) malloc (MAXLENTITLE * sizeof (char));
+		Node * memObject = (Node * ) malloc									 (sizeof (Node));
+		CHECK_ERROR(!memObject, 			"Problem with allocating memory for memObject.");
 
-		strcpy (memObject->data, HEADOBJECT);
-		memObject->left = NULL;
-		memObject->right = NULL;
-		tree->head = memObject;
+		memObject->data  = (char * ) malloc					   (MAXLENTITLE * sizeof (char));
+		CHECK_ERROR(!memObject->data, "Problem with allocating memory for memObject->data.");
+
+		strcpy (memObject->data,  HEADOBJECT);
+		memObject->left  = 			 	 NULL;
+		memObject->right = 			     NULL;
+		tree->head       =		    memObject;
 		tree->size++;
 	}
+
+	StackCtor (&(tree->stack),     STACKSIZE);
+	StackCtor (&(tree->nextStack), STACKSIZE);
 
 	return ERROR_OFF;
 }
@@ -486,6 +529,7 @@ int InitializeTree (Tree * tree, FILE * infoTree) {
 int menu (Tree * tree) {
 
 	char * variant = (char * ) calloc (MAXLENVARIANT, sizeof (char));
+	CHECK_ERROR(!variant,           "Problem with opening tree.txt");
 
 	printf ("\n\n\n%s\n", FRAME                                 );
 	printf ("                     MENU:                      \n");
