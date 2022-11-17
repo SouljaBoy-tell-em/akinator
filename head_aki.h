@@ -32,15 +32,15 @@ const char * NO =  "n";
 #define INFOFILE 				  "info.txt"
 #define SIZECOEFFICIENT 				   2
 #define STARTSIZETREE   				   3
-#define CHECK_ERROR(condition, message_error) 		  \
-            do {                                          \
-               if  (condition) {                          \
-                   printf ("%s", message_error);          \
-                   return ERROR_ON;                       \
-               }                                          \
+#define CHECK_ERROR(condition, message_error) 		   \
+            do {                                           \
+               if  (condition) {                           \
+                   printf ("%s", message_error);           \
+                   return ERROR_ON;                        \
+               }                                           \
             } while(false)
 
-#define DEF_CMD(name, num, ...)			          \
+#define DEF_CMD(name, num, ...)			           \
             CMD_##name = num,
 
 
