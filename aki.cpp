@@ -10,10 +10,15 @@ enum error_code {
     ERROR_ON
 };
 
+enum graph_dump_commands {
+
+	HEAD,
+	FIRSTLY
+};
+
 
 const char * YES = "y";
 const char * NO =  "n";
-
 
 #define STACKSIZE										  30
 #define FRAME "############################################"
@@ -82,7 +87,8 @@ unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
 int getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
-void graphDump (Node * currentNode, FILE * graphDumpFile, int * numberBlock);
+int graphDump (Node * head);
+void graphDumpDrawNode (Node * currentNode, FILE * graphDumpFile, int * commandGraphDump);
 void infoLastCharacter (Tree * tree);
 int InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode);
 int InitializeTree (Tree * tree, FILE * infoTree);
@@ -123,11 +129,7 @@ int main (void) {
 	}
 	CHECK_ERROR(dump (&tree, dumpFile, infoTree), "Problem with record in the tree.\n");
 
-
-	FILE * graphDumpFile = fopen ("graphDump.txt", "w");
-	int numNode = 0;
-	graphDump (tree.head, graphDumpFile, &numNode);
-
+	graphDump (tree.head);
 
 	return ERROR_OFF;
 }
@@ -217,18 +219,44 @@ void exploreObject (Node * currentNode, char * object, bool * flagExplore) {
 }
 
 
-void graphDump (Node * currentNode, FILE * graphDumpFile, int * numberBlock) {
+int graphDump (Node * head) {
+
+	FILE * graphDumpFile = fopen ("graphDump.txt", "w");
+	CHECK_ERROR(!graphDumpFile, "Problem with opening graphDump.txt.\n");
+
+	int commandGraphDump = HEAD;
+	fprintf (graphDumpFile, "digraph G {\n rankdir=L\n");
+	graphDumpDrawNode (head, graphDumpFile, &commandGraphDump);
+	fprintf (graphDumpFile, "}");
+
+	fclose (graphDumpFile);
+
+	return ERROR_OFF;
+}
+
+
+void graphDumpDrawNode (Node * currentNode, FILE * graphDumpFile, int * commandGraphDump) {
 
 	if (currentNode != NULL) {
 
-		//fprintf (graphDumpFile, "block%s [shape=record, color=\"green\", label=\"%s\"];\n", * numberBlock, currentNode->data);
+		if (( * commandGraphDump) != HEAD) {
 
-		if ( * numberBlock)
-			fprintf (graphDumpFile, "%s -> %s\n", ( * numberBlock == 0) ? "null" : (currentNode->parent)->data, currentNode->data);
-		
-		( * numberBlock)++;
-		graphDump (currentNode->left, graphDumpFile, numberBlock);
-		graphDump (currentNode->right, graphDumpFile, numberBlock);
+			if (( * commandGraphDump) == FIRSTLY)
+				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  (currentNode->parent)->data, "orange", (currentNode->parent)->data);
+
+			if ((currentNode->parent)->left == currentNode)
+				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  currentNode->data, "green",  currentNode->data);
+
+			if ((currentNode->parent)->right == currentNode)
+				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  currentNode->data, "red",    currentNode->data);
+
+			fprintf (graphDumpFile, "block%s -> block%s\n", (currentNode->parent)->data, currentNode->data);
+
+		}
+
+		( * commandGraphDump)++;
+		graphDumpDrawNode (currentNode->left, graphDumpFile,  commandGraphDump);
+		graphDumpDrawNode (currentNode->right, graphDumpFile, commandGraphDump);
 	}
 }
 
