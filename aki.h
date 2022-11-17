@@ -263,6 +263,7 @@ int dump (Tree * tree, FILE * dumpFile, FILE * infoFile) {
 	fullPrint (tree->head, dumpFile, 4);
 	fprintf (infoFile, "%d", tree->size);
 	fclose (dumpFile);
+	fclose (infoFile);
 
 	return ERROR_OFF;
 }
