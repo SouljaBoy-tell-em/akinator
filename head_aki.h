@@ -20,19 +20,19 @@ enum graph_dump_commands {
 const char * YES = "y";
 const char * NO =  "n";
 
-#define STACKSIZE										  30
+#define STACKSIZE			                  30
 #define FRAME "############################################"
-#define POISON										   "###"
-#define CANARY									   "##END##"
-#define MAXLENVARIANT         						      10
-#define MAXLENANSWER							     	  10
-#define MAXLENTITLE 			   						 100
-#define HEADOBJECT 							   "poltorashka"
-#define DUMPFILE   		 					      "tree.txt"
-#define INFOFILE 								  "info.txt"
-#define SIZECOEFFICIENT 								  2
-#define STARTSIZETREE   								  3
-#define CHECK_ERROR(condition, message_error) 		      \
+#define POISON					       "###"
+#define CANARY					   "##END##"
+#define MAXLENVARIANT         		                  10
+#define MAXLENANSWER				          10
+#define MAXLENTITLE 			   		 100
+#define HEADOBJECT 		               "poltorashka"
+#define DUMPFILE   		 		  "tree.txt"
+#define INFOFILE 				  "info.txt"
+#define SIZECOEFFICIENT 				   2
+#define STARTSIZETREE   				   3
+#define CHECK_ERROR(condition, message_error) 		  \
             do {                                          \
                if  (condition) {                          \
                    printf ("%s", message_error);          \
@@ -40,7 +40,7 @@ const char * NO =  "n";
                }                                          \
             } while(false)
 
-#define DEF_CMD(name, num, ...)							  \
+#define DEF_CMD(name, num, ...)			          \
             CMD_##name = num,
 
 
