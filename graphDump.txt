@@ -1,0 +1,44 @@
+digraph G {
+ rankdir=L
+blockhuman [shape=record, color="orange", label="human"];
+blockrapper [shape=record, color="green", label="rapper"];
+blockhuman -> blockrapper
+blockhas_a_diamond_in_the_head [shape=record, color="green", label="has_a_diamond_in_the_head"];
+blockrapper -> blockhas_a_diamond_in_the_head
+blockLil_Uzi_Vert [shape=record, color="green", label="Lil_Uzi_Vert"];
+blockhas_a_diamond_in_the_head -> blockLil_Uzi_Vert
+blockplane_overdose [shape=record, color="red", label="plane_overdose"];
+blockhas_a_diamond_in_the_head -> blockplane_overdose
+blockjuicyWRLD [shape=record, color="green", label="juicyWRLD"];
+blockplane_overdose -> blockjuicyWRLD
+blocklive_in_Spain [shape=record, color="red", label="live_in_Spain"];
+blockplane_overdose -> blocklive_in_Spain
+blockkizaru [shape=record, color="green", label="kizaru"];
+blocklive_in_Spain -> blockkizaru
+blockfast_rap [shape=record, color="red", label="fast_rap"];
+blocklive_in_Spain -> blockfast_rap
+blockEminem [shape=record, color="green", label="Eminem"];
+blockfast_rap -> blockEminem
+blockfrom_Canada [shape=record, color="red", label="from_Canada"];
+blockfast_rap -> blockfrom_Canada
+blockDrake [shape=record, color="green", label="Drake"];
+blockfrom_Canada -> blockDrake
+blockWiz_Khalifa [shape=record, color="red", label="Wiz_Khalifa"];
+blockfrom_Canada -> blockWiz_Khalifa
+blockLegenda_of_92 [shape=record, color="red", label="Legenda_of_92"];
+blockrapper -> blockLegenda_of_92
+blockGrishakPlay [shape=record, color="green", label="GrishakPlay"];
+blockLegenda_of_92 -> blockGrishakPlay
+blockmorgenshtern [shape=record, color="red", label="morgenshtern"];
+blockLegenda_of_92 -> blockmorgenshtern
+blockpink [shape=record, color="red", label="pink"];
+blockhuman -> blockpink
+blockpatrick [shape=record, color="green", label="patrick"];
+blockpink -> blockpatrick
+blockhas_a_doorhandle [shape=record, color="red", label="has_a_doorhandle"];
+blockpink -> blockhas_a_doorhandle
+blockdoor [shape=record, color="green", label="door"];
+blockhas_a_doorhandle -> blockdoor
+blockpoltorashka [shape=record, color="red", label="poltorashka"];
+blockhas_a_doorhandle -> blockpoltorashka
+}
