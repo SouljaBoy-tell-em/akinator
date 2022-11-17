@@ -82,6 +82,7 @@ unsigned long FileSize (FILE * infoTree);
 void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces);
 int getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem);
 int getMainInfoFile (Tree * tree, FILE * infoTree);
+void graphDump (Node * currentNode, FILE * graphDumpFile, int * numberBlock);
 void infoLastCharacter (Tree * tree);
 int InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNode);
 int InitializeTree (Tree * tree, FILE * infoTree);
@@ -121,6 +122,12 @@ int main (void) {
 		}
 	}
 	CHECK_ERROR(dump (&tree, dumpFile, infoTree), "Problem with record in the tree.\n");
+
+
+	FILE * graphDumpFile = fopen ("graphDump.txt", "w");
+	int numNode = 0;
+	graphDump (tree.head, graphDumpFile, &numNode);
+
 
 	return ERROR_OFF;
 }
@@ -206,6 +213,22 @@ void exploreObject (Node * currentNode, char * object, bool * flagExplore) {
 
 		exploreObject (currentNode->left , object, flagExplore);
 		exploreObject (currentNode->right, object, flagExplore);
+	}
+}
+
+
+void graphDump (Node * currentNode, FILE * graphDumpFile, int * numberBlock) {
+
+	if (currentNode != NULL) {
+
+		//fprintf (graphDumpFile, "block%s [shape=record, color=\"green\", label=\"%s\"];\n", * numberBlock, currentNode->data);
+
+		if ( * numberBlock)
+			fprintf (graphDumpFile, "%s -> %s\n", ( * numberBlock == 0) ? "null" : (currentNode->parent)->data, currentNode->data);
+		
+		( * numberBlock)++;
+		graphDump (currentNode->left, graphDumpFile, numberBlock);
+		graphDump (currentNode->right, graphDumpFile, numberBlock);
 	}
 }
 
