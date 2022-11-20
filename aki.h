@@ -1,41 +1,37 @@
-int addAnswer (Node * lastNode, int * size, Stack * stack) {
+int addAnswer (Node * lastNode, int * size) {
 
 	printf ("Is it %s?(y/n)\n", lastNode->data);
 
-	char answer [MAXLENANSWER] = " ";
+	char answer [MAXLENANSWER] = "";
 	scanf ("%s", answer);
 
 	if (!strcmp (answer, YES)) {
 
-		strcpy (stack->answer, lastNode->data);
 		printf ("Yes, I won!\n\n");
 		return ERROR_OFF;
 	}
 
 	else if (!strcmp (answer, NO)) {
 
-		char trueAnswer [MAXLENTITLE];
-		char difference [MAXLENTITLE];
+		char trueAnswer [MAXLENTITLE] = "";
+		char difference [MAXLENTITLE] = "";
 
 		printf ("Who is it? Input: ");
 		scanf ("%s", trueAnswer);
 		printf ("\nHow does %s differ from %s? Input: ", trueAnswer, lastNode->data);
 		scanf ("%s", difference);
 
-		StackPush (stack, YES, difference);
-		strcpy (stack->answer, trueAnswer);
-
-		lastNode->left          = (Node * ) malloc                  			(sizeof (Node));
-		CHECK_ERROR(!stack->data, "Problem with allocating memory for lastNode->left.         ");
+		lastNode->left          = (Node * ) malloc                  			(sizeof (Node));	//! TODO : создать констуркутор
+		CHECK_ERROR(!lastNode->left, "Problem with allocating memory for lastNode->left.         ");
 
 		(lastNode->left)->data  = (char * ) malloc (MAXLENTITLE * 			     sizeof (char));
-		CHECK_ERROR(!stack->data, "Problem with allocating memory for (lastNode->left)->data. ");
+		CHECK_ERROR(!(lastNode->left)->data, "Problem with allocating memory for (lastNode->left)->data. ");
 
 		lastNode->right 		= (Node * ) malloc 								(sizeof (Node));
-		CHECK_ERROR(!stack->data, "Problem with allocating memory for lastNode->right.        ");
+		CHECK_ERROR(!lastNode->right, "Problem with allocating memory for lastNode->right.        ");
 
 		(lastNode->right)->data = (char * ) malloc (MAXLENTITLE * 				 sizeof (char));
-		CHECK_ERROR(!stack->data, "Problem with allocating memory for (lastNode->right)->data.");
+		CHECK_ERROR(!(lastNode->right)->data, "Problem with allocating memory for (lastNode->right)->data.");
 
 		strcpy ((lastNode->right)->data, lastNode->data);
 		strcpy (lastNode->data         , difference);
@@ -56,11 +52,11 @@ int addAnswer (Node * lastNode, int * size, Stack * stack) {
 }
 
 
-int AddNode (Node * currentNode, int * size, Stack * stack) {
+int AddNode (Node * currentNode, int * size) {
 
 	if (currentNode->left == NULL && currentNode->right == NULL) {
 
-		addAnswer (currentNode, size, stack);
+		addAnswer (currentNode, size);
 		return ERROR_OFF;
 	}
 
@@ -70,42 +66,21 @@ int AddNode (Node * currentNode, int * size, Stack * stack) {
 		
 	if (!strcmp (answer, YES)) {
 
-		StackPush (stack, YES, currentNode->data);
-		AddNode (currentNode->left, size, stack);
+		AddNode (currentNode->left, size);
 	}
 
 	else if (!strcmp (answer, NO)) {
 
-		StackPush (stack, NO, currentNode->data);
-		AddNode (currentNode->right, size, stack);
+		AddNode (currentNode->right, size);
 	}
 
 	else {
 
-		printf ("ANS: %s\n\n\n", answer);
 		printf ("Input fake answer! Please input (y/n).\n");
 		return ERROR_ON;
 	}
 
 	return ERROR_OFF;
-}
-
-
-void AddObject (Tree * tree) {
-
-	if ((tree->stack).size) {
-
-		if ((tree->nextStack).size) {
-
-			tree->stack = tree->nextStack;
-			StackClean(&(tree->nextStack));
-		}
-
-		AddNode (tree->head, &(tree->size), &(tree->nextStack));
-		return;
-	}
-
-	AddNode (tree->head, &(tree->size), &(tree->stack));
 }
 
 
@@ -145,29 +120,17 @@ int Aki (void) {
 }
 
 
-int compare2Characters (Tree * tree) {
+int dump (Tree * tree, FILE * dumpFile, FILE * infoFile) {
 
-	if (!(tree->stack).size || !(tree->stack).size) {
-
-		printf ("You didn't input 2 objects.\n");
-		return ERROR_OFF;
-	}
-
-	int minAmountFeatures = 		((tree->stack).size <= (tree->nextStack).size) ? 
-									 (tree->stack).size :  (tree->nextStack).size  ;
-
-	char ** listFeatures  = (char ** ) calloc (minAmountFeatures, sizeof (char * ));
-	CHECK_ERROR(!listFeatures, "Problem with allocating memory for listFeatures. ");
-
-	printf ("Similarities:\n");
-	int i = 0;
-	for (i = minAmountFeatures; i >= 0; i--)
-		if (!strcmp ((tree->stack).data[i], (tree->nextStack).data[i]))
-			printf ("%s\n", (tree->stack).data[i]);
-
-	StackClean (&(tree->stack));
-	StackClean (&(tree->nextStack));
-	free (listFeatures);
+	dumpFile = fopen (DUMPFILE, "w");
+	CHECK_ERROR(!dumpFile, "Problem with opening tree.txt");
+	infoFile = fopen (INFOFILE, "w");
+	CHECK_ERROR(!infoFile, "Problem with opening info.txt");
+	
+	fullPrint (tree->head, dumpFile, 4);
+	fprintf (infoFile, "%d", tree->size);
+	fclose (dumpFile);
+	fclose (infoFile);
 
 	return ERROR_OFF;
 }
@@ -179,9 +142,10 @@ int existenceCheck (Tree * tree) {
 	CHECK_ERROR(!object, "Problem with allocating memory for object.");
 
 	bool flagExplore = false;
+	Node * save = NULL;
 	printf ("Input desired object:\n");
 	scanf ("%s", object);
-	exploreObject (tree->head, object, &flagExplore);
+	exploreObject (tree->head, object, &flagExplore, &save);
 
 	if (flagExplore)
 		printf ("This object contains in the tree.     \n");
@@ -195,19 +159,47 @@ int existenceCheck (Tree * tree) {
 }
 
 
-void exploreObject (Node * currentNode, char * object, bool * flagExplore) {
+void exploreObject (Node * currentNode, char * object, bool * flagExplore, Node ** save) {
 
 	if (currentNode != NULL) {
 
 		if (!strcmp (currentNode->data, object)) {
 
-			* flagExplore = true;
-			return;
+			* flagExplore 		=        true;
+			* save          		= currentNode;
 		}
 
-		exploreObject (currentNode->left , object, flagExplore);
-		exploreObject (currentNode->right, object, flagExplore);
+		exploreObject (currentNode->left , object, flagExplore, save);
+		exploreObject (currentNode->right, object, flagExplore, save);
 	}
+}
+
+
+unsigned long FileSize (FILE * infoTree) {
+
+	struct stat buf = {};
+	if (fstat (fileno (infoTree), &buf) == 0)
+		return buf.st_size;
+
+	return 0;
+}
+
+
+void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces) {
+
+	fprintf (dumpFile, "\n%*s", amountSpaces, "{");
+	fprintf (dumpFile, " %s", currentNode->data);
+
+	if (currentNode->left)
+		fullPrint (currentNode->left,  dumpFile, amountSpaces + 4);
+
+	if (currentNode->right)
+		fullPrint (currentNode->right, dumpFile, amountSpaces + 4);
+
+	if (!currentNode->left && !currentNode->right)
+		amountSpaces = 2;
+
+	fprintf (dumpFile , "%*s\n", amountSpaces, "}");
 }
 
 
@@ -234,66 +226,22 @@ void graphDumpDrawNode (Node * currentNode, FILE * graphDumpFile, int * commandG
 		if (( * commandGraphDump) != HEAD) {
 
 			if (( * commandGraphDump) == FIRSTLY)
-				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  (currentNode->parent)->data, "orange", (currentNode->parent)->data);
+				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  (currentNode->parent)->data, ORANGE, (currentNode->parent)->data);
 
 			if ((currentNode->parent)->left == currentNode)
-				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  currentNode->data, "green",  currentNode->data);
+				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  currentNode->data, GREEN,  currentNode->data);
 
 			if ((currentNode->parent)->right == currentNode)
-				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  currentNode->data, "red",    currentNode->data);
+				fprintf (graphDumpFile, "block%s [shape=record, color=\"%s\", label=\"%s\"];\n",  currentNode->data, RED,    currentNode->data);
 
 			fprintf (graphDumpFile, "block%s -> block%s\n", (currentNode->parent)->data, currentNode->data);
 
 		}
 
-		( * commandGraphDump)++;
+		( * commandGraphDump)++                                                ;
 		graphDumpDrawNode (currentNode->left, graphDumpFile,  commandGraphDump);
 		graphDumpDrawNode (currentNode->right, graphDumpFile, commandGraphDump);
 	}
-}
-
-
-int dump (Tree * tree, FILE * dumpFile, FILE * infoFile) {
-
-	dumpFile = fopen (DUMPFILE, "w");
-	CHECK_ERROR(!dumpFile, "Problem with opening tree.txt");
-	infoFile = fopen (INFOFILE, "w");
-	CHECK_ERROR(!infoFile, "Problem with opening info.txt");
-	
-	fullPrint (tree->head, dumpFile, 4);
-	fprintf (infoFile, "%d", tree->size);
-	fclose (dumpFile);
-	fclose (infoFile);
-
-	return ERROR_OFF;
-}
-
-
-unsigned long FileSize (FILE * infoTree) {
-
-    struct stat buf = {};
-    if (fstat (fileno (infoTree), &buf) == 0)
-        return buf.st_size;
-
-    return 0;
-}
-
-
-void fullPrint (Node * currentNode, FILE * dumpFile, int amountSpaces) {
-
-	fprintf (dumpFile, "\n%*s", amountSpaces, "{");
-	fprintf (dumpFile, " %s", currentNode->data);
-
-	if (currentNode->left)
-		fullPrint (currentNode->left,  dumpFile, amountSpaces + 4);
-
-	if (currentNode->right)
-		fullPrint (currentNode->right, dumpFile, amountSpaces + 4);
-
-	if (!currentNode->left && !currentNode->right)
-		amountSpaces = 2;
-
-	fprintf (dumpFile , "%*s\n", amountSpaces, "}");
 }
 
 
@@ -309,6 +257,21 @@ int getDataFromFile (FILE * dumpFile, Tree * tree, char ** mem) {
 }
 
 
+void getSkills (Stack * stack, Node * explore_object, Node * head) {
+
+	if (explore_object == head) 
+		return;
+
+	if ((explore_object->parent)->left == explore_object)
+		StackPush (stack, YES, (explore_object->parent)->data);
+
+	if ((explore_object->parent)->right == explore_object)
+		StackPush (stack,  NO, (explore_object->parent)->data);
+
+	getSkills (stack, explore_object->parent, head);
+}
+
+
 int getMainInfoFile (Tree * tree, FILE * infoTree) {
 
 	infoTree = fopen (INFOFILE, "r");
@@ -319,28 +282,28 @@ int getMainInfoFile (Tree * tree, FILE * infoTree) {
 }
 
 
-void infoLastCharacter (Tree * tree) {
+int infoLastCharacter (Tree * tree) {
 
-	if ((tree->nextStack).size) {
+	Node * explore_object =  NULL;
+	bool flag 		      = false;
 
-		printf ("%s is:\n", (tree->nextStack).answer);
-		while ((tree->nextStack).size != 0)
-			printf ("%s\n", StackPop (&(tree->nextStack)));
+	char * object = (char * ) calloc (MAXLENTITLE, sizeof (char));
+	CHECK_ERROR(!object, "Problem with allocating memory for object.");
+	scanf ("%s", object);
 
-		StackClean (&(tree->stack));
-		return;
+	exploreObject (tree->head, object, &flag, &explore_object);
+
+	if (flag) {
+
+		Stack stack = {};
+		StackCtor (&stack, tree->size);
+		getSkills (&stack, explore_object, tree->head);
+
+		while (stack.size != 0)
+			printf ("%s\n", StackPop (&stack));
 	}
 
-	if ((tree->stack).size) {
-
-		printf ("%s is:\n", (tree->stack).answer);
-		while ((tree->stack).size != 0)
-			printf ("%s\n", StackPop (&(tree->stack)));
-
-		return;
-	}
-
-	printf ("You didn't guess character.\n");
+	return ERROR_OFF;
 }
 
 
@@ -352,13 +315,13 @@ int InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNo
 	fscanf (dumpFile, "%s", bracketBuffer);
 	if (!strcmp (bracketBuffer, "{")) {
 
-		* currentNode = (Node * )          malloc 								(sizeof (Node));
+		* currentNode = (Node * )          malloc 						(sizeof (Node));
 		CHECK_ERROR(!( * currentNode), 		 "Problem with allocating memory for currentNode.");
 
 		( * currentNode)->data = (char * ) malloc 				  (MAXLENTITLE * sizeof (char));
 		CHECK_ERROR(!( * currentNode), "Problem with allocating memory for currentNode->data.");
 
-		( * currentNode)->right  =               NULL;
+		( * currentNode)->right  =               NULL; // !TODO: поместить в обычную функцию;
 		( * currentNode)->left   =               NULL;
 		( * currentNode)->parent =  parentCurrentNode;
 
@@ -387,7 +350,7 @@ int InitializeTree (Tree * tree, FILE * infoTree) {
 
 	if (tree->size == 0) {
 
-		Node * memObject = (Node * ) malloc									 (sizeof (Node));
+		Node * memObject = (Node * ) malloc							 (sizeof (Node));
 		CHECK_ERROR(!memObject, 			"Problem with allocating memory for memObject.");
 
 		memObject->data  = (char * ) malloc					   (MAXLENTITLE * sizeof (char));
@@ -397,11 +360,8 @@ int InitializeTree (Tree * tree, FILE * infoTree) {
 		memObject->left  = 			 	 NULL;
 		memObject->right = 			     NULL;
 		tree->head       =		    memObject;
-		tree->size++;
+		tree->size++                         ;
 	}
-
-	StackCtor (&(tree->stack),     STACKSIZE);
-	StackCtor (&(tree->nextStack), STACKSIZE);
 
 	return ERROR_OFF;
 }
@@ -418,9 +378,9 @@ int menu (Tree * tree) {
 	printf ("p) Play;              							 \n");
 	printf ("i) Info last character;   						 \n");
 	printf ("e) Explore object in the tree;					 \n");
-	printf ("c) Compare 2 last objects;						 \n");
+	printf ("c) Compare 2 last objects;			 			 \n");
 	printf ("q) Quit;                                        \n");
-	printf ("												 \n");
+	printf ("						 						 \n");
 	printf ("%s\n", FRAME                                       );
 	printf ("\n"                                                );
 	printf ("Amount of elements in the tree: %d\n",   tree->size);
