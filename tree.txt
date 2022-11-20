@@ -1,0 +1,50 @@
+
+   { human
+       { rapper
+           { has_a_diamond_in_the_head
+               { Lil_Uzi_Vert }
+
+               { plane_overdose
+                   { juicyWRLD }
+
+                   { live_in_Spain
+                       { kizaru }
+
+                       { fast_rap
+                           { Eminem }
+
+                           { from_Canada
+                               { Drake }
+
+                               { Wiz_Khalifa }
+                           }
+                       }
+                   }
+               }
+           }
+
+           { Legenda_of_92
+               { GrishakPlay }
+
+               { bydlo
+                   { max }
+
+                   { morgenshtern }
+               }
+           }
+       }
+
+       { pink
+           { patrick }
+
+           { has_a_doorhandle
+               { door }
+
+               { grey
+                   { hippo }
+
+                   { poltorashka }
+               }
+           }
+       }
+   }
