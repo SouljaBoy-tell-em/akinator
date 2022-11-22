@@ -90,4 +90,5 @@ int InitializeNode (Node ** currentNode, FILE * dumpFile, Node * parentCurrentNo
 int InitializeTree (Tree * tree, FILE * infoTree);
 int menu (Tree * tree);
 int outputInfoCharacter (Tree * tree);
+void remainingSkillsObject (Stack * object);
 int startConstructor (Tree * tree);
