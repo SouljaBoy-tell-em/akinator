@@ -115,16 +115,15 @@ int compareFeatures (Stack * object1, Stack * object2) {
 
 		strcpy (save, object1->data[object1->size - 1]);
 
-		if (!strcmp (save, StackPop (object2)))
+		if (!strcmp (save,  StackPop (object2)))
 			printf ("%s, ", StackPop (object1));
 
 		else
 			break;
 	}
 
-	printf ("\nand differs: ");
-	while (object1->size != 0)
-		printf ("%s, ", StackPop (object1));
+	remainingSkillsObject (object1);
+	remainingSkillsObject (object2);
 
 	return ERROR_OFF;
 }
@@ -334,9 +333,11 @@ Stack infoCharacter (Tree * tree) {
 
 	Node * explore_object =  NULL;
 	bool flag 		      = false;
-	Stack stack = {};
+	Stack stack 		  =    {};
 
 	char * object = (char * ) calloc (MAXLENTITLE, sizeof (char));
+	if   (!object) return stack;
+
 	scanf ("%s", object);
 
 	exploreObject (tree->head, object, &flag, &explore_object);
@@ -406,7 +407,7 @@ int menu (Tree * tree) {
 	printf ("                     MENU:                      \n");
 	printf ("                                                \n");
 	printf ("p) Play;              							 \n");
-	printf ("i) Info last character;   						 \n");
+	printf ("i) Info character;     						 \n");
 	printf ("e) Explore object in the tree;					 \n");
 	printf ("c) Compare 2 last objects;			 			 \n");
 	printf ("q) Quit;                                        \n");
@@ -441,17 +442,20 @@ int outputInfoCharacter (Tree * tree) {
 }
 
 
+void remainingSkillsObject (Stack * object) {
+
+	printf ("\nand other %s's skills (differs): ", object->answer);
+	while (object->size != 0)
+		printf ("%s, ", StackPop (object));
+}
+
+
 int startConstructor (Tree * tree) {
 
-	Node * memObject = (Node * ) malloc									   (sizeof (Node));
-	CHECK_ERROR(!memObject, 			"Problem with allocating memory for memObject.\n");
-
-	memObject->data  = (char * ) malloc					     (MAXLENTITLE * sizeof (char));
-	CHECK_ERROR(!memObject->data, "Problem with allocating memory for memObject->data.\n");
+	Node * memObject = 				 NULL ;
+	constructor (&memObject, 		 NULL);
 
 	strcpy (memObject->data,  HEADOBJECT);
-	memObject->left  = 			 	 NULL;
-	memObject->right = 			     NULL;
 	tree->head       =		    memObject;
 	tree->size++                         ;
 
