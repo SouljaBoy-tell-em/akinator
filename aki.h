@@ -122,7 +122,9 @@ int compareFeatures (Stack * object1, Stack * object2) {
 			break;
 	}
 
+    printf ("\nand other ");
 	remainingSkillsObject (object1);
+    printf ("\nbut ");
 	remainingSkillsObject (object2);
 
 	return ERROR_OFF;
@@ -332,7 +334,7 @@ int getMainInfoFile (Tree * tree, FILE * infoTree) {
 Stack infoCharacter (Tree * tree) {
 
 	Node * explore_object =  NULL;
-	bool flag 		      = false;
+	bool found 		      = false;
 	Stack stack 		  =    {};
 
 	char * object = (char * ) calloc (MAXLENTITLE, sizeof (char));
@@ -340,9 +342,9 @@ Stack infoCharacter (Tree * tree) {
 
 	scanf ("%s", object);
 
-	exploreObject (tree->head, object, &flag, &explore_object);
+	exploreObject (tree->head, object, &found, &explore_object);
 
-	if (flag) {
+	if (found) {
 
 		StackCtor (&stack, tree->size);
 		getSkills (&stack, explore_object, tree->head);
@@ -444,7 +446,7 @@ int outputInfoCharacter (Tree * tree) {
 
 void remainingSkillsObject (Stack * object) {
 
-	printf ("\nand other %s's skills (differs): ", object->answer);
+	printf ("%s's skills (differs): ", object->answer);
 	while (object->size != 0)
 		printf ("%s, ", StackPop (object));
 }
@@ -461,4 +463,3 @@ int startConstructor (Tree * tree) {
 
 	return ERROR_OFF;
 }
-
