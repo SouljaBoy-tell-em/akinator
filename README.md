@@ -18,4 +18,4 @@ In the game you can see virtual menu, where you can choose variant.
 
 Graph dump tree: 
 
-![](graphdump)
+![](akiGraphDumpPhoto.png)
