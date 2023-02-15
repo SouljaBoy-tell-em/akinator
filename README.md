@@ -14,7 +14,7 @@ My game has 5 modes:
 2) you can compare 2 person in the tree;
 3) you can know, who is in the tree and "Aki" try to win you.
 
-In the game you can see virtual menu, where you can choose variant.
+In the game you can see virtual menu, where you can choose variant and see, how persons contain in the tree.
 
 Graph dump tree: 
 
